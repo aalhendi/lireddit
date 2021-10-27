@@ -13,6 +13,11 @@ async function main() {
     async function startServer() {
       const apolloServer = new ApolloServer({
         schema: schema,
+        context: async ({}) => ({
+          // This part is up to you!
+          // TODO: Implement authenticated user stuff
+          // currentUser: await getUserFromAuthHeader(req.headers.authorization),
+        }),
       });
       await apolloServer.start();
       apolloServer.applyMiddleware({ app });
@@ -24,35 +29,6 @@ async function main() {
     app.listen(parseInt(PORT as string), () => {
       console.log(`Listening on port ${PORT}`);
     });
-    // const post = await prisma.post.update({
-    //   where: { id: 1 },
-    //   data: { published: true },
-    // });
-    // console.log(post);
-
-    // await prisma.user.create({
-    //   data: {
-    //     name: "Alice",
-    //     email: "alice@prisma.io",
-    //     posts: {
-    //       create: { title: "Hello World" },
-    //     },
-    //     profile: {
-    //       create: { bio: "I like turtles" },
-    //     },
-    //   },
-    // });
-
-    // const allUsers = await prisma.user.findMany({
-    //   include: {
-    //     posts: true,
-    //     profile: true,
-    //   },
-    // });
-    // console.dir(allUsers, { depth: null });
-
-    // const allUsers = await prisma.user.findMany();
-    // console.log(allUsers);
   } catch (error) {
     throw error;
   } finally {
