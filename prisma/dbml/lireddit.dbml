@@ -28,6 +28,7 @@ Table Profile {
 Table User {
   id Int [pk, increment]
   email String [unique, not null]
+  password String [not null]
   name String
   posts Post [not null]
   profile Profile

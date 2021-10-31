@@ -1,8 +1,10 @@
 import SchemaBuilder from "@giraphql/core";
 import { PrismaClient } from "@prisma/client";
+import ErrorsPlugin from "@giraphql/plugin-errors";
 import PrismaPlugin from "@giraphql/plugin-prisma";
-// This is the default location for the generator, but this can be customized as described above
-import PrismaTypes from "@giraphql/plugin-prisma/generated";
+import ValidationPlugin from "@giraphql/plugin-validation";
+import PrismaTypes from "@giraphql/plugin-prisma/generated"; // default generator location, can be changed in schema
+import argon2 from "argon2";
 
 const prisma = new PrismaClient({});
 
@@ -23,23 +25,90 @@ const builder = new SchemaBuilder<{
   PrismaTypes: PrismaTypes;
   Context: {
     currentUser: User;
+    req: Express.Request;
+    res: Express.Response;
   };
 }>({
-  plugins: [PrismaPlugin],
+  plugins: [ErrorsPlugin, ValidationPlugin, PrismaPlugin],
   prisma: {
     client: prisma,
   },
 });
 
+const ErrorInterface = builder.interfaceRef<Error>("Error").implement({
+  fields: (t) => ({
+    message: t.exposeString("message"),
+  }),
+});
+
+builder.objectType(Error, {
+  name: "BaseError",
+  isTypeOf: (obj) => obj instanceof Error,
+  interfaces: [ErrorInterface],
+});
+
+class LengthError extends Error {
+  fieldName: string;
+  minLength: number;
+  constructor(fieldName: string, minLength: number) {
+    super(`${fieldName} length should be at least ${minLength}`);
+    this.minLength = minLength;
+    this.fieldName = fieldName;
+    this.name = "LengthError";
+  }
+}
+
+class NotFoundError extends Error {
+  fieldName: string;
+  constructor(fieldName: string) {
+    super(`${fieldName} Not found`);
+    this.fieldName = fieldName;
+    this.name = "NotFoundError";
+  }
+}
+
+class InvalidCredentialsError extends Error {
+  constructor() {
+    super(`Invalid Credentials`);
+    this.name = "NotFoundError";
+  }
+}
+
+builder.objectType(LengthError, {
+  name: "LengthError",
+  interfaces: [ErrorInterface],
+  isTypeOf: (obj) => obj instanceof LengthError,
+  fields: (t) => ({
+    minLength: t.exposeInt("minLength"),
+    fieldName: t.exposeString("fieldName"),
+  }),
+});
+
+builder.objectType(NotFoundError, {
+  name: "NotFoundError",
+  interfaces: [ErrorInterface],
+  isTypeOf: (obj) => obj instanceof NotFoundError,
+  fields: (t) => ({
+    fieldName: t.exposeString("fieldName"),
+  }),
+});
+
+builder.objectType(InvalidCredentialsError, {
+  name: "InvalidCredentialsError",
+  interfaces: [ErrorInterface],
+  isTypeOf: (obj) => obj instanceof InvalidCredentialsError,
+});
+
 builder.prismaObject("User", {
-  // Optional name for the object, defaults to the name of the prisma model
-  name: "PostAuthor",
+  name: "User", // Optional, default = prisma model
   findUnique: null,
   fields: (t) => ({
     id: t.exposeID("id"),
     email: t.exposeString("email"),
+    name: t.exposeString("name", { nullable: true }),
   }),
 });
+
 builder.prismaObject("Post", {
   findUnique: null,
   fields: (t) => ({
@@ -51,21 +120,16 @@ builder.prismaObject("Post", {
 
 builder.queryType({
   fields: (t) => ({
-    // me: t.prismaField({
-    //   type: "User",
-    //   resolve: async (query, root, args, ctx, info) =>
-    //     prisma.user.findUnique({
-    //       ...query,
-    //       rejectOnNotFound: true,
-    //       where: { id: ctx.currentUser.userId as any },
-    //     }),
-    // }),
     posts: t.prismaField({
       type: ["Post"],
       resolve: async () => await prisma.post.findMany({}),
     }),
     post: t.prismaField({
       type: "Post",
+      errors: {
+        types: [NotFoundError],
+        // directResult: true,
+      },
       args: {
         id: t.arg({
           type: "Int",
@@ -73,19 +137,44 @@ builder.queryType({
           description: "ID",
         }),
       },
-      resolve: async (_query, _root, args, _ctx, _info) =>
-        await prisma.post.findUnique({
-          rejectOnNotFound: true,
+      resolve: async (_query, _root, args, _ctx, _info) => {
+        const foundPost = await prisma.post.findUnique({
+          // rejectOnNotFound: true,
           where: {
             id: args.id,
           },
-        }),
+        });
+        if (foundPost) {
+          return foundPost;
+        } else {
+          throw new NotFoundError("Post");
+        }
+      },
+    }),
+    me: t.prismaField({
+      type: "User",
+      // TODO: Change to unauthorized error (?)
+      nullable: true,
+      resolve: async (_query, _root, _args, ctx, _info) => {
+        if (!ctx.req.session.userId) {
+          return null;
+        }
+        const authenticatedUser = await prisma.user.findUnique({
+          where: { id: ctx.req.session.userId },
+        });
+        if (authenticatedUser) {
+          return authenticatedUser;
+        } else {
+          return null;
+        }
+      },
     }),
   }),
 });
 
 builder.mutationType({
   fields: (t) => ({
+    /* Post Mutations */
     createPost: t.prismaField({
       type: "Post",
       args: {
@@ -165,6 +254,93 @@ builder.mutationType({
             id: args.id,
           },
         }),
+    }),
+    /* User Mutations */
+    createUser: t.prismaField({
+      type: "User",
+      args: {
+        email: t.arg({
+          type: "String",
+          required: true,
+          description: "E-mail Adress",
+          validate: {
+            email: [true, { message: "Must be a valid e-mail address." }],
+          },
+        }),
+        password: t.arg({
+          type: "String",
+          required: true,
+          description: "Password",
+          validate: {
+            type: "string",
+            minLength: [6, { message: "Minimum password length is 6." }],
+          },
+          // TODO: Use a Zod schema or a regex for password validation
+        }),
+        name: t.arg({
+          type: "String",
+          required: false,
+          description: "Name",
+        }),
+      },
+      resolve: async (_query, _root, args, ctx, _info) => {
+        const hashedPassword = await argon2.hash(args.password);
+        // TODO: Handle duplicate unique constraint, maybe trycatch
+        const newUser = await prisma.user.create({
+          data: {
+            ...args,
+            password: hashedPassword,
+          },
+        });
+        ctx.req.session.userId = newUser.id;
+        return newUser;
+      },
+    }),
+    login: t.prismaField({
+      type: "User",
+      errors: {
+        types: [InvalidCredentialsError],
+        // TODO: Remove intermediary object inside "data": from response
+        // TODO: Have Error in an Errors object (?)
+      },
+      args: {
+        email: t.arg({
+          type: "String",
+          required: true,
+          description: "E-mail Adress",
+          validate: {
+            // TODO: Reformat validation messages. Match format with Errors from Error Plugin
+            email: [true, { message: "Must be valid e-mail address." }],
+          },
+        }),
+        password: t.arg({
+          type: "String",
+          required: true,
+          description: "Password",
+        }),
+      },
+      resolve: async (_query, _root, args, ctx, _info) => {
+        const foundUser = await prisma.user.findUnique({
+          // rejectOnNotFound: true,
+          where: {
+            email: args.email,
+          },
+        });
+        if (foundUser) {
+          const passwordMatch = await argon2.verify(
+            foundUser.password,
+            args.password
+          );
+          if (passwordMatch) {
+            ctx.req.session.userId = foundUser.id;
+            return foundUser;
+          } else {
+            throw new InvalidCredentialsError();
+          }
+        } else {
+          throw new InvalidCredentialsError();
+        }
+      },
     }),
   }),
 });
