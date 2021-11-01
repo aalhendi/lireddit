@@ -5,6 +5,7 @@ import PrismaPlugin from "@giraphql/plugin-prisma";
 import ValidationPlugin from "@giraphql/plugin-validation";
 import PrismaTypes from "@giraphql/plugin-prisma/generated"; // default generator location, can be changed in schema
 import argon2 from "argon2";
+import { ZodFormattedError, ZodError } from "zod";
 
 const prisma = new PrismaClient({});
 
@@ -97,6 +98,53 @@ builder.objectType(InvalidCredentialsError, {
   name: "InvalidCredentialsError",
   interfaces: [ErrorInterface],
   isTypeOf: (obj) => obj instanceof InvalidCredentialsError,
+});
+
+// Util for flattening zod errors into something easier to represent in your Schema.
+function flattenErrors(
+  error: ZodFormattedError<unknown>,
+  path: string[]
+): { path: string[]; message: string }[] {
+  // eslint-disable-next-line no-underscore-dangle
+  const errors = error._errors.map((message) => ({
+    path,
+    message,
+  }));
+  Object.keys(error).forEach((key) => {
+    if (key !== "_errors") {
+      errors.push(
+        ...flattenErrors(
+          (error as Record<string, unknown>)[key] as ZodFormattedError<unknown>,
+          [...path, key]
+        )
+      );
+    }
+  });
+  return errors;
+}
+// A type for the individual validation issues
+const ZodFieldError = builder
+  .objectRef<{
+    message: string;
+    path: string[];
+  }>("ZodFieldError")
+  .implement({
+    fields: (t) => ({
+      message: t.exposeString("message"),
+      path: t.exposeStringList("path"),
+    }),
+  });
+// The actual error type
+builder.objectType(ZodError, {
+  name: "ZodError",
+  interfaces: [ErrorInterface],
+  isTypeOf: (obj) => obj instanceof ZodError,
+  fields: (t) => ({
+    fieldErrors: t.field({
+      type: [ZodFieldError],
+      resolve: (err) => flattenErrors(err.format(), []),
+    }),
+  }),
 });
 
 builder.prismaObject("User", {
@@ -256,8 +304,11 @@ builder.mutationType({
         }),
     }),
     /* User Mutations */
-    createUser: t.prismaField({
+    register: t.prismaField({
       type: "User",
+      errors: {
+        types: [ZodError],
+      },
       args: {
         email: t.arg({
           type: "String",
@@ -299,7 +350,7 @@ builder.mutationType({
     login: t.prismaField({
       type: "User",
       errors: {
-        types: [InvalidCredentialsError],
+        types: [InvalidCredentialsError, ZodError],
         // TODO: Remove intermediary object inside "data": from response
         // TODO: Have Error in an Errors object (?)
       },
