@@ -4,7 +4,6 @@ import { Button } from "@chakra-ui/button";
 import Wrapper from "../../components/Wrapper";
 import InputField from "../../components/InputField";
 import { Box } from "@chakra-ui/layout";
-import { useMutation } from "urql";
 import { useRegisterMutation } from "../generated/graphql";
 
 interface registerProps {}
@@ -66,3 +65,4 @@ const Register: React.FC<registerProps> = ({}) => {
 };
 
 export default Register;
+
