@@ -14,7 +14,7 @@ type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   textarea?: boolean;
 };
 
-export const InputField: React.FC<InputFieldProps> = ({
+const InputField: React.FC<InputFieldProps> = ({
   label,
   textarea,
   size: _,
@@ -38,3 +38,5 @@ export const InputField: React.FC<InputFieldProps> = ({
     </FormControl>
   );
 };
+
+export default InputField;
