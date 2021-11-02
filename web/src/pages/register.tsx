@@ -1,13 +1,16 @@
 import React from "react";
 import { Formik, Form } from "formik";
 import { Button } from "@chakra-ui/button";
-import { Wrapper } from "./components/Wrapper";
-import { InputField } from "./components/InputField";
+import Wrapper from "../../components/Wrapper";
+import InputField from "../../components/InputField";
 import { Box } from "@chakra-ui/layout";
+import { useRegisterMutation } from "../generated/graphql";
 
 interface registerProps {}
 
 const Register: React.FC<registerProps> = ({}) => {
+  const [, register] = useRegisterMutation();
+
   function validateName(value: any): any {
     let error;
     if (!value) {
@@ -22,11 +25,18 @@ const Register: React.FC<registerProps> = ({}) => {
     <Wrapper>
       <Formik
         initialValues={{ email: "bob@bob.com", password: "" }}
-        onSubmit={(values, actions) => {
-          setTimeout(() => {
-            alert(JSON.stringify(values, null, 2));
-            actions.setSubmitting(false);
-          }, 1000);
+        onSubmit={async (values, actions) => {
+          alert(JSON.stringify(values, null, 2));
+          const response = await register(values);
+          console.log(response);
+          if (
+            response.error ||
+            response.data?.register.__typename! === "ZodError"
+          ) {
+            alert(JSON.stringify(response.data?.register));
+          }
+          actions.setSubmitting(false);
+          return;
         }}
       >
         {(props) => (
@@ -55,3 +65,4 @@ const Register: React.FC<registerProps> = ({}) => {
 };
 
 export default Register;
+
