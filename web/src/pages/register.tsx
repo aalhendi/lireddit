@@ -5,32 +5,12 @@ import Wrapper from "../../components/Wrapper";
 import InputField from "../../components/InputField";
 import { Box } from "@chakra-ui/layout";
 import { useMutation } from "urql";
+import { useRegisterMutation } from "../generated/graphql";
 
 interface registerProps {}
 
 const Register: React.FC<registerProps> = ({}) => {
-  const REGISTER_MUTATION = `
-  mutation register($email:String!, $password:String!, $name:String) {
-    register(email: $email, password:$password, name:$name) {
-      ... on ZodError {
-        fieldErrors {
-          message
-          path
-        }
-      }
-      ... on MutationRegisterSuccess{
-        data{
-          id
-          email
-          name
-        }
-      }
-    }
-    
-  }
-  `;
-
-  const [, register] = useMutation(REGISTER_MUTATION);
+  const [, register] = useRegisterMutation();
 
   function validateName(value: any): any {
     let error;
@@ -50,6 +30,12 @@ const Register: React.FC<registerProps> = ({}) => {
           alert(JSON.stringify(values, null, 2));
           const response = await register(values);
           console.log(response);
+          if (
+            response.error ||
+            response.data?.register.__typename! === "ZodError"
+          ) {
+            alert(JSON.stringify(response.data?.register));
+          }
           actions.setSubmitting(false);
           return;
         }}
