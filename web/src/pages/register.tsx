@@ -1,8 +1,8 @@
 import React from "react";
 import { Formik, Form } from "formik";
 import { Button } from "@chakra-ui/button";
-import Wrapper from "../components/Wrapper";
-import InputField from "../components/InputField";
+import Wrapper from "../../components/Wrapper";
+import InputField from "../../components/InputField";
 import { Box } from "@chakra-ui/layout";
 import { useMutation } from "urql";
 
