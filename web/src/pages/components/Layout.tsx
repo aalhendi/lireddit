@@ -6,7 +6,7 @@ interface LayoutProps {}
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="content">
-      <NavBar />
+      <NavBar pageProps />
       {children}
     </div>
   );
