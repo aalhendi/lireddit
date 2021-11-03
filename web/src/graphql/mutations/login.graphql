@@ -1,0 +1,23 @@
+mutation login($email: String!, $password: String!) {
+  login(email: $email, password: $password) {
+    ... on MutationLoginSuccess {
+      data {
+        id
+        email
+        name
+      }
+    }
+    ... on ZodError {
+      fieldErrors {
+        message
+        path
+      }
+    }
+    ... on InvalidCredentialsError {
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}

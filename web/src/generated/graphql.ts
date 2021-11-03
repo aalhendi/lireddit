@@ -148,6 +148,14 @@ export type ZodFieldError = {
   path: Array<Scalars['String']>;
 };
 
+export type LoginMutationVariables = Exact<{
+  email: Scalars['String'];
+  password: Scalars['String'];
+}>;
+
+
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'InvalidCredentialsError', message: string } | { __typename?: 'MutationLoginSuccess', data: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } } | { __typename?: 'ZodError', message: string, fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
+
 export type RegisterMutationVariables = Exact<{
   email: Scalars['String'];
   password: Scalars['String'];
@@ -158,6 +166,35 @@ export type RegisterMutationVariables = Exact<{
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'AlreadyExistsError', fieldName: string, message: string } | { __typename?: 'MutationRegisterSuccess', data: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } } | { __typename?: 'ZodError', fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
 
 
+export const LoginDocument = gql`
+    mutation login($email: String!, $password: String!) {
+  login(email: $email, password: $password) {
+    ... on MutationLoginSuccess {
+      data {
+        id
+        email
+        name
+      }
+    }
+    ... on ZodError {
+      fieldErrors {
+        message
+        path
+      }
+    }
+    ... on InvalidCredentialsError {
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
+    `;
+
+export function useLoginMutation() {
+  return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
+};
 export const RegisterDocument = gql`
     mutation register($email: String!, $password: String!, $name: String) {
   register(email: $email, password: $password, name: $name) {
