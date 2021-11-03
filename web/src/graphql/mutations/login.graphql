@@ -2,9 +2,7 @@ mutation login($email: String!, $password: String!) {
   login(email: $email, password: $password) {
     ... on MutationLoginSuccess {
       data {
-        id
-        email
-        name
+        ...NormalUser
       }
     }
     ... on ZodError {

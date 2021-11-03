@@ -148,13 +148,15 @@ export type ZodFieldError = {
   path: Array<Scalars['String']>;
 };
 
+export type NormalUserFragment = { __typename?: 'User', id: string, name?: string | null | undefined, email: string };
+
 export type LoginMutationVariables = Exact<{
   email: Scalars['String'];
   password: Scalars['String'];
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'InvalidCredentialsError', message: string } | { __typename?: 'MutationLoginSuccess', data: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } } | { __typename?: 'ZodError', message: string, fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'InvalidCredentialsError', message: string } | { __typename?: 'MutationLoginSuccess', data: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } } | { __typename?: 'ZodError', message: string, fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
 
 export type RegisterMutationVariables = Exact<{
   email: Scalars['String'];
@@ -163,22 +165,26 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'AlreadyExistsError', fieldName: string, message: string } | { __typename?: 'MutationRegisterSuccess', data: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } } | { __typename?: 'ZodError', fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'AlreadyExistsError', fieldName: string, message: string } | { __typename?: 'MutationRegisterSuccess', data: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } } | { __typename?: 'ZodError', fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', email: string, id: string, name?: string | null | undefined } | null | undefined };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } | null | undefined };
 
-
+export const NormalUserFragmentDoc = gql`
+    fragment NormalUser on User {
+  id
+  name
+  email
+}
+    `;
 export const LoginDocument = gql`
     mutation login($email: String!, $password: String!) {
   login(email: $email, password: $password) {
     ... on MutationLoginSuccess {
       data {
-        id
-        email
-        name
+        ...NormalUser
       }
     }
     ... on ZodError {
@@ -195,7 +201,7 @@ export const LoginDocument = gql`
     }
   }
 }
-    `;
+    ${NormalUserFragmentDoc}`;
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
@@ -211,9 +217,7 @@ export const RegisterDocument = gql`
     }
     ... on MutationRegisterSuccess {
       data {
-        id
-        email
-        name
+        ...NormalUser
       }
     }
     ... on AlreadyExistsError {
@@ -222,7 +226,7 @@ export const RegisterDocument = gql`
     }
   }
 }
-    `;
+    ${NormalUserFragmentDoc}`;
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
@@ -230,12 +234,10 @@ export function useRegisterMutation() {
 export const MeDocument = gql`
     query me {
   me {
-    email
-    id
-    name
+    ...NormalUser
   }
 }
-    `;
+    ${NormalUserFragmentDoc}`;
 
 export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
