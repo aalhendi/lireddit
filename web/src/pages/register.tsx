@@ -29,14 +29,13 @@ const Register: React.FC<registerProps> = ({}) => {
             response.data?.register.__typename === "MutationRegisterSuccess"
           ) {
             /* Backend successful response */
-            alert(JSON.stringify(response.data.register.data, null, 2));
+            return router.push("/");
           } else if (
             response.data?.register.__typename === "AlreadyExistsError"
           ) {
             actions.setErrors(toFieldError(response.data.register));
           }
           actions.setSubmitting(false);
-          return router.push("/");
         }}
       >
         {(props) => (
