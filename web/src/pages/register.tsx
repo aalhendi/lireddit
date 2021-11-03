@@ -6,10 +6,12 @@ import InputField from "./components/InputField";
 import { Box } from "@chakra-ui/layout";
 import { useRegisterMutation } from "../generated/graphql";
 import { toFieldError, toErrorMap } from "../utils/toErrorMap";
+import { useRouter } from "next/dist/client/router";
 
 interface registerProps {}
 
 const Register: React.FC<registerProps> = ({}) => {
+  const router = useRouter();
   const [, register] = useRegisterMutation();
 
   return (
@@ -34,7 +36,7 @@ const Register: React.FC<registerProps> = ({}) => {
             actions.setErrors(toFieldError(response.data.register));
           }
           actions.setSubmitting(false);
-          return;
+          return router.push("/");
         }}
       >
         {(props) => (
