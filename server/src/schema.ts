@@ -6,6 +6,8 @@ import ValidationPlugin from "@giraphql/plugin-validation";
 import PrismaTypes from "@giraphql/plugin-prisma/generated"; // default generator location, can be changed in schema
 import argon2 from "argon2";
 import { ZodFormattedError, ZodError } from "zod";
+import express from "express";
+import { COOKIE_NAME } from "./constants";
 
 const prisma = new PrismaClient({});
 
@@ -26,8 +28,8 @@ const builder = new SchemaBuilder<{
   PrismaTypes: PrismaTypes;
   Context: {
     currentUser: User;
-    req: Express.Request;
-    res: Express.Response;
+    req: express.Request;
+    res: express.Response;
   };
 }>({
   plugins: [ErrorsPlugin, ValidationPlugin, PrismaPlugin],
@@ -417,6 +419,21 @@ builder.mutationType({
         } else {
           throw new InvalidCredentialsError();
         }
+      },
+    }),
+    logout: t.boolean({
+      resolve: (_parent, {}, { req, res }): Promise<boolean> => {
+        return new Promise((resolve) =>
+          req.session.destroy((err) => {
+            res.clearCookie(COOKIE_NAME);
+            if (err) {
+              console.log(err);
+              resolve(false);
+              return;
+            }
+            resolve(true);
+          })
+        );
       },
     }),
   }),

@@ -10,6 +10,7 @@ import cors from "cors";
 import session from "express-session";
 import redis from "redis";
 import connectRedis from "connect-redis";
+import { COOKIE_NAME } from "./constants";
 
 if (!fs.existsSync("./.env")) {
   throw new Error("Cannot locate .env file in the root directory.");
@@ -34,7 +35,7 @@ async function main() {
     app.use(cors(corsOptions));
     app.use(
       session({
-        name: "xrf",
+        name: COOKIE_NAME,
         store: new RedisStore({
           client: redisClient,
           // disableTTL: true,

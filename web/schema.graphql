@@ -43,6 +43,7 @@ type Mutation {
     """Password"""
     password: String!
   ): MutationLoginResult!
+  logout: Boolean!
   register(
     """E-mail Adress"""
     email: String!
