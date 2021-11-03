@@ -1,39 +1,37 @@
 import React from "react";
 import { Formik, Form } from "formik";
 import { Button } from "@chakra-ui/button";
-import Wrapper from "../../components/Wrapper";
-import InputField from "../../components/InputField";
+import Wrapper from "./components/Wrapper";
+import InputField from "./components/InputField";
 import { Box } from "@chakra-ui/layout";
 import { useRegisterMutation } from "../generated/graphql";
+import { toFieldError, toErrorMap } from "../utils/toErrorMap";
 
 interface registerProps {}
 
 const Register: React.FC<registerProps> = ({}) => {
   const [, register] = useRegisterMutation();
 
-  function validateName(value: any): any {
-    let error;
-    if (!value) {
-      error = "Name is required";
-    } else if (value.toLowerCase() !== "naruto") {
-      error = "Jeez! You're not a fan 😱";
-    }
-    return error;
-  }
-
   return (
     <Wrapper>
       <Formik
-        initialValues={{ email: "bob@bob.com", password: "" }}
+        initialValues={{ email: "", password: "" }}
         onSubmit={async (values, actions) => {
-          alert(JSON.stringify(values, null, 2));
+          // TODO: Improve error handling
+          // TODO: Add front-end validation
           const response = await register(values);
-          console.log(response);
-          if (
-            response.error ||
-            response.data?.register.__typename! === "ZodError"
+          if (response.data?.register.__typename === "ZodError") {
+            /* Backend validation response */
+            actions.setErrors(toErrorMap(response.data.register.fieldErrors));
+          } else if (
+            response.data?.register.__typename === "MutationRegisterSuccess"
           ) {
-            alert(JSON.stringify(response.data?.register));
+            /* Backend successful response */
+            alert(JSON.stringify(response.data.register.data, null, 2));
+          } else if (
+            response.data?.register.__typename === "AlreadyExistsError"
+          ) {
+            actions.setErrors(toFieldError(response.data.register));
           }
           actions.setSubmitting(false);
           return;
@@ -65,4 +63,3 @@ const Register: React.FC<registerProps> = ({}) => {
 };
 
 export default Register;
-

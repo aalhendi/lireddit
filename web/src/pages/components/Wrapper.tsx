@@ -7,10 +7,7 @@ interface WrapperProps {
   variant?: WrapperVariant;
 }
 
-export const Wrapper: React.FC<WrapperProps> = ({
-  children,
-  variant = "regular",
-}) => {
+const Wrapper: React.FC<WrapperProps> = ({ children, variant = "regular" }) => {
   const mapVariant = (variant: string) => {
     switch (variant) {
       case "regular":
@@ -28,3 +25,5 @@ export const Wrapper: React.FC<WrapperProps> = ({
     </Box>
   );
 };
+
+export default Wrapper;

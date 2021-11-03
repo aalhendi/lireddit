@@ -1,4 +1,5 @@
 overwrite: true
+# errorsOnly: true
 schema: "http://localhost:8000/graphql"
 documents: "src/graphql/**/*.graphql"
 generates:
@@ -7,3 +8,12 @@ generates:
       - "typescript"
       - "typescript-operations"
       - "typescript-urql"
+  # This prints an SDL schema.
+  schema.graphql:
+    plugins:
+      - "schema-ast"
+  # __generated__/operations.ts:
+  #   plugins:
+  #     - "typescript"
+  #     - "typescript-operations"
+  #     - "typescript-urql"

@@ -13,5 +13,9 @@ mutation register($email: String!, $password: String!, $name: String) {
         name
       }
     }
+    ... on AlreadyExistsError {
+      fieldName
+      message
+    }
   }
 }

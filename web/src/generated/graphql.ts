@@ -14,6 +14,12 @@ export type Scalars = {
   Float: number;
 };
 
+export type AlreadyExistsError = Error & {
+  __typename?: 'AlreadyExistsError';
+  fieldName: Scalars['String'];
+  message: Scalars['String'];
+};
+
 export type BaseError = Error & {
   __typename?: 'BaseError';
   message: Scalars['String'];
@@ -84,7 +90,7 @@ export type MutationLoginSuccess = {
   data: User;
 };
 
-export type MutationRegisterResult = MutationRegisterSuccess | ZodError;
+export type MutationRegisterResult = AlreadyExistsError | MutationRegisterSuccess | ZodError;
 
 export type MutationRegisterSuccess = {
   __typename?: 'MutationRegisterSuccess';
@@ -149,7 +155,7 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'MutationRegisterSuccess', data: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } } | { __typename?: 'ZodError', fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'AlreadyExistsError', fieldName: string, message: string } | { __typename?: 'MutationRegisterSuccess', data: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } } | { __typename?: 'ZodError', fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
 
 
 export const RegisterDocument = gql`
@@ -167,6 +173,10 @@ export const RegisterDocument = gql`
         email
         name
       }
+    }
+    ... on AlreadyExistsError {
+      fieldName
+      message
     }
   }
 }

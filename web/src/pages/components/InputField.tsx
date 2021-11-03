@@ -5,7 +5,6 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
-  Textarea,
 } from "@chakra-ui/react";
 
 type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -14,7 +13,7 @@ type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   textarea?: boolean;
 };
 
-export const InputField: React.FC<InputFieldProps> = ({
+const InputField: React.FC<InputFieldProps> = ({
   label,
   textarea,
   size: _,
@@ -38,3 +37,5 @@ export const InputField: React.FC<InputFieldProps> = ({
     </FormControl>
   );
 };
+
+export default InputField;

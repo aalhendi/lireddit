@@ -1,0 +1,123 @@
+type AlreadyExistsError implements Error {
+  fieldName: String!
+  message: String!
+}
+
+type BaseError implements Error {
+  message: String!
+}
+
+interface Error {
+  message: String!
+}
+
+type InvalidCredentialsError implements Error {
+  message: String!
+}
+
+type LengthError implements Error {
+  fieldName: String!
+  message: String!
+  minLength: Int!
+}
+
+type Mutation {
+  createPost(
+    """Author ID"""
+    authorId: Int!
+
+    """Content"""
+    content: String
+
+    """Title"""
+    title: String!
+  ): Post!
+  deletePost(
+    """ID"""
+    id: Int!
+  ): Post!
+  login(
+    """E-mail Adress"""
+    email: String!
+
+    """Password"""
+    password: String!
+  ): MutationLoginResult!
+  register(
+    """E-mail Adress"""
+    email: String!
+
+    """Name"""
+    name: String
+
+    """Password"""
+    password: String!
+  ): MutationRegisterResult!
+  updatePost(
+    """Author ID"""
+    authorId: Int
+
+    """Content"""
+    content: String
+
+    """ID"""
+    id: Int!
+
+    """Title"""
+    title: String
+  ): Post!
+}
+
+union MutationLoginResult = InvalidCredentialsError | MutationLoginSuccess | ZodError
+
+type MutationLoginSuccess {
+  data: User!
+}
+
+union MutationRegisterResult = AlreadyExistsError | MutationRegisterSuccess | ZodError
+
+type MutationRegisterSuccess {
+  data: User!
+}
+
+type NotFoundError implements Error {
+  fieldName: String!
+  message: String!
+}
+
+type Post {
+  content: String
+  id: ID!
+  title: String!
+}
+
+type Query {
+  me: User
+  post(
+    """ID"""
+    id: Int!
+  ): QueryPostResult!
+  posts: [Post!]!
+}
+
+union QueryPostResult = NotFoundError | QueryPostSuccess
+
+type QueryPostSuccess {
+  data: Post!
+}
+
+type User {
+  email: String!
+  id: ID!
+  name: String
+}
+
+type ZodError implements Error {
+  fieldErrors: [ZodFieldError!]!
+  message: String!
+}
+
+type ZodFieldError {
+  message: String!
+  path: [String!]!
+}

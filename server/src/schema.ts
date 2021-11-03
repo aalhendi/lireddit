@@ -75,6 +75,15 @@ class InvalidCredentialsError extends Error {
   }
 }
 
+class AlreadyExistsError extends Error {
+  fieldName: string;
+  constructor(fieldName: string) {
+    super(`${fieldName} already exists`);
+    this.fieldName = fieldName;
+    this.name = "AlreadyExistsError";
+  }
+}
+
 builder.objectType(LengthError, {
   name: "LengthError",
   interfaces: [ErrorInterface],
@@ -98,6 +107,15 @@ builder.objectType(InvalidCredentialsError, {
   name: "InvalidCredentialsError",
   interfaces: [ErrorInterface],
   isTypeOf: (obj) => obj instanceof InvalidCredentialsError,
+});
+
+builder.objectType(AlreadyExistsError, {
+  name: "AlreadyExistsError",
+  interfaces: [ErrorInterface],
+  isTypeOf: (obj) => obj instanceof AlreadyExistsError,
+  fields: (t) => ({
+    fieldName: t.exposeString("fieldName"),
+  }),
 });
 
 // Util for flattening zod errors into something easier to represent in your Schema.
@@ -307,7 +325,7 @@ builder.mutationType({
     register: t.prismaField({
       type: "User",
       errors: {
-        types: [ZodError],
+        types: [ZodError, AlreadyExistsError],
       },
       args: {
         email: t.arg({
@@ -335,16 +353,24 @@ builder.mutationType({
         }),
       },
       resolve: async (_query, _root, args, ctx, _info) => {
-        const hashedPassword = await argon2.hash(args.password);
-        // TODO: Handle duplicate unique constraint, maybe trycatch
-        const newUser = await prisma.user.create({
-          data: {
-            ...args,
-            password: hashedPassword,
+        const foundUser = await prisma.user.findUnique({
+          where: {
+            email: args.email,
           },
         });
-        ctx.req.session.userId = newUser.id;
-        return newUser;
+        if (foundUser) {
+          throw new AlreadyExistsError("email");
+        } else {
+          const hashedPassword = await argon2.hash(args.password);
+          const newUser = await prisma.user.create({
+            data: {
+              ...args,
+              password: hashedPassword,
+            },
+          });
+          ctx.req.session.userId = newUser.id;
+          return newUser;
+        }
       },
     }),
     login: t.prismaField({
