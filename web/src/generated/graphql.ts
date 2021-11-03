@@ -44,7 +44,7 @@ export type LengthError = Error & {
 export type Mutation = {
   __typename?: 'Mutation';
   createPost: Post;
-  deletePost: Post;
+  deletePost: MutationDeletePostResult;
   login: MutationLoginResult;
   logout: Scalars['Boolean'];
   register: MutationRegisterResult;
@@ -82,6 +82,13 @@ export type MutationUpdatePostArgs = {
   content?: Maybe<Scalars['String']>;
   id: Scalars['Int'];
   title?: Maybe<Scalars['String']>;
+};
+
+export type MutationDeletePostResult = MutationDeletePostSuccess | NotFoundError;
+
+export type MutationDeletePostSuccess = {
+  __typename?: 'MutationDeletePostSuccess';
+  data: Post;
 };
 
 export type MutationLoginResult = InvalidCredentialsError | MutationLoginSuccess | ZodError;
@@ -151,6 +158,13 @@ export type ZodFieldError = {
 
 export type NormalUserFragment = { __typename?: 'User', id: string, name?: string | null | undefined, email: string };
 
+export type DeletePostMutationVariables = Exact<{
+  postId: Scalars['Int'];
+}>;
+
+
+export type DeletePostMutation = { __typename?: 'Mutation', deletePost: { __typename?: 'MutationDeletePostSuccess', data: { __typename?: 'Post', id: string, title: string, content?: string | null | undefined } } | { __typename?: 'NotFoundError', fieldName: string, message: string } };
+
 export type LoginMutationVariables = Exact<{
   email: Scalars['String'];
   password: Scalars['String'];
@@ -178,6 +192,11 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } | null | undefined };
 
+export type PostsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PostsQuery = { __typename?: 'Query', posts: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined }> };
+
 export const NormalUserFragmentDoc = gql`
     fragment NormalUser on User {
   id
@@ -185,6 +204,30 @@ export const NormalUserFragmentDoc = gql`
   email
 }
     `;
+export const DeletePostDocument = gql`
+    mutation deletePost($postId: Int!) {
+  deletePost(id: $postId) {
+    ... on MutationDeletePostSuccess {
+      data {
+        id
+        title
+        content
+      }
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
+    `;
+
+export function useDeletePostMutation() {
+  return Urql.useMutation<DeletePostMutation, DeletePostMutationVariables>(DeletePostDocument);
+};
 export const LoginDocument = gql`
     mutation login($email: String!, $password: String!) {
   login(email: $email, password: $password) {
@@ -256,4 +299,17 @@ export const MeDocument = gql`
 
 export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
+};
+export const PostsDocument = gql`
+    query posts {
+  posts {
+    id
+    title
+    content
+  }
+}
+    `;
+
+export function usePostsQuery(options: Omit<Urql.UseQueryArgs<PostsQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<PostsQuery>({ query: PostsDocument, ...options });
 };

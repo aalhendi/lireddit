@@ -35,7 +35,7 @@ type Mutation {
   deletePost(
     """ID"""
     id: Int!
-  ): Post!
+  ): MutationDeletePostResult!
   login(
     """E-mail Adress"""
     email: String!
@@ -67,6 +67,12 @@ type Mutation {
     """Title"""
     title: String
   ): Post!
+}
+
+union MutationDeletePostResult = MutationDeletePostSuccess | NotFoundError
+
+type MutationDeletePostSuccess {
+  data: Post!
 }
 
 union MutationLoginResult = InvalidCredentialsError | MutationLoginSuccess | ZodError

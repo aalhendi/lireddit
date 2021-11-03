@@ -1,0 +1,18 @@
+mutation deletePost($postId: Int!) {
+  deletePost(id: $postId) {
+    ... on MutationDeletePostSuccess {
+      data {
+        id
+        title
+        content
+      }
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}

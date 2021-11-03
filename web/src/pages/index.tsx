@@ -2,8 +2,13 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
+import { withUrqlClient } from "next-urql";
+import { createUrqlClient } from "../utils/createUrqlClient";
+import { Box, Text } from "@chakra-ui/layout";
+import { usePostsQuery } from "../generated/graphql";
 
 const Home: NextPage = () => {
+  const [{ fetching: postsFetching, data }] = usePostsQuery();
   return (
     <div className={styles.container}>
       <Head>
@@ -52,6 +57,13 @@ const Home: NextPage = () => {
           </a>
         </div>
       </main>
+      <Box>
+        {postsFetching ? (
+          <Text>Loading</Text>
+        ) : (
+          data?.posts.map((post) => <Text key={post.id}>{post.title}</Text>)
+        )}
+      </Box>
 
       <footer className={styles.footer}>
         <a
@@ -69,4 +81,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default withUrqlClient(createUrqlClient, { ssr: true })(Home);

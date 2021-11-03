@@ -309,6 +309,9 @@ builder.mutationType({
     }),
     deletePost: t.prismaField({
       type: "Post",
+      errors: {
+        types: [NotFoundError],
+      },
       args: {
         id: t.arg({
           type: "Int",
@@ -316,13 +319,24 @@ builder.mutationType({
           description: "ID",
         }),
       },
-      resolve: async (_query, _root, args, _ctx, _info) =>
-        await prisma.post.delete({
+      resolve: async (_query, _root, args, _ctx, _info) => {
+        const foundPost = await prisma.post.findUnique({
           where: {
             id: args.id,
           },
-        }),
+        });
+        if (foundPost) {
+          return await prisma.post.delete({
+            where: {
+              id: args.id,
+            },
+          });
+        } else {
+          throw new NotFoundError("id");
+        }
+      },
     }),
+
     /* User Mutations */
     register: t.prismaField({
       type: "User",
