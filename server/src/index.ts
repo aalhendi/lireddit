@@ -8,7 +8,7 @@ import { schema } from "./schema";
 import fs from "fs";
 import cors from "cors";
 import session from "express-session";
-import redis from "redis";
+import { redis } from "./redis";
 import connectRedis from "connect-redis";
 import { COOKIE_NAME } from "./constants";
 
@@ -23,7 +23,6 @@ async function main() {
     const app = express();
 
     const RedisStore = connectRedis(session);
-    const redisClient = redis.createClient();
 
     const corsOptions = {
       // TODO: Origin in .env (?)
@@ -37,16 +36,16 @@ async function main() {
       session({
         name: COOKIE_NAME,
         store: new RedisStore({
-          client: redisClient,
+          client: redis as any,
           // disableTTL: true,
           disableTouch: true, // touching keeps connected user auth token active, disabling = can sit idle and not have auth expire. less secure
         }),
         cookie: {
-          maxAge: 1000 * 60 * 60 * 24 * 365 * 5,
+          maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year cookie
           httpOnly: true, // Dont alow JS to access this cookie
           sameSite: "lax", // CSRF stuff
           secure: process.env.NODE_ENV === "production", // HTTPS only. False until prod
-          domain: undefined, // TODO: Change
+          domain: process.env.FRONT_END_URL, // TODO: Change
         },
         saveUninitialized: false,
         secret: process.env.SECRET_KEY!,
@@ -56,13 +55,19 @@ async function main() {
     async function startServer() {
       const apolloServer = new ApolloServer({
         schema: schema,
-        debug: true, // TODO: Change in prod
+        debug: process.env.NODE_ENV !== "production",
         plugins: [
           ApolloServerPluginLandingPageGraphQLPlayground({
             // options
           }),
         ],
-        context: async ({ req, res }) => ({
+        context: async ({
+          req,
+          res,
+        }: {
+          res: express.Request;
+          req: express.Response;
+        }) => ({
           req,
           res,
           // currentUser: await getUserFromAuthHeader(req.session.authorization), // Fetch user on demand via req.session.userId vs fetch user here

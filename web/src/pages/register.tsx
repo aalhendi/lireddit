@@ -9,10 +9,11 @@ import { toFieldError, toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/dist/client/router";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
+import { NextPage } from "next";
 
 interface registerProps {}
 
-const Register: React.FC<registerProps> = ({}) => {
+const Register: NextPage<registerProps> = ({}) => {
   const router = useRouter();
   const [, register] = useRegisterMutation();
 
@@ -47,6 +48,7 @@ const Register: React.FC<registerProps> = ({}) => {
                 name="email"
                 placeholder="name@example.com"
                 label="E-mail"
+                type="email"
               />
               <InputField
                 name="password"

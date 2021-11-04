@@ -1,4 +1,8 @@
-import { AlreadyExistsError, ZodFieldError } from "../generated/graphql";
+import {
+  AlreadyExistsError,
+  NotFoundError,
+  ZodFieldError,
+} from "../generated/graphql";
 
 export const toErrorMap = (errors: ZodFieldError[]) => {
   // NOTE: obj:{ [key: string]: string } === obj: Record<string, string>
@@ -10,7 +14,7 @@ export const toErrorMap = (errors: ZodFieldError[]) => {
 };
 
 // TODO: Add other types whenever needed
-export const toFieldError = (error: AlreadyExistsError) => {
+export const toFieldError = (error: AlreadyExistsError | NotFoundError) => {
   const obj: Record<string, string> = {};
   obj[error.fieldName] = error.message;
   return obj;

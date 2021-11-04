@@ -43,12 +43,20 @@ export type LengthError = Error & {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  changePassword: MutationChangePasswordResult;
   createPost: Post;
   deletePost: MutationDeletePostResult;
+  forgotPassword: MutationForgotPasswordResult;
   login: MutationLoginResult;
   logout: Scalars['Boolean'];
   register: MutationRegisterResult;
   updatePost: Post;
+};
+
+
+export type MutationChangePasswordArgs = {
+  newPassword: Scalars['String'];
+  token: Scalars['String'];
 };
 
 
@@ -61,6 +69,11 @@ export type MutationCreatePostArgs = {
 
 export type MutationDeletePostArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationForgotPasswordArgs = {
+  email: Scalars['String'];
 };
 
 
@@ -84,11 +97,25 @@ export type MutationUpdatePostArgs = {
   title?: Maybe<Scalars['String']>;
 };
 
+export type MutationChangePasswordResult = MutationChangePasswordSuccess | NotFoundError | ZodError;
+
+export type MutationChangePasswordSuccess = {
+  __typename?: 'MutationChangePasswordSuccess';
+  data: User;
+};
+
 export type MutationDeletePostResult = MutationDeletePostSuccess | NotFoundError;
 
 export type MutationDeletePostSuccess = {
   __typename?: 'MutationDeletePostSuccess';
   data: Post;
+};
+
+export type MutationForgotPasswordResult = MutationForgotPasswordSuccess | ZodError;
+
+export type MutationForgotPasswordSuccess = {
+  __typename?: 'MutationForgotPasswordSuccess';
+  data: Scalars['Boolean'];
 };
 
 export type MutationLoginResult = InvalidCredentialsError | MutationLoginSuccess | ZodError;
@@ -158,12 +185,27 @@ export type ZodFieldError = {
 
 export type NormalUserFragment = { __typename?: 'User', id: string, name?: string | null | undefined, email: string };
 
+export type ChangePasswordMutationVariables = Exact<{
+  newPassword: Scalars['String'];
+  token: Scalars['String'];
+}>;
+
+
+export type ChangePasswordMutation = { __typename?: 'Mutation', changePassword: { __typename?: 'MutationChangePasswordSuccess', data: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } } | { __typename?: 'NotFoundError', fieldName: string, message: string } | { __typename?: 'ZodError', message: string, fieldErrors: Array<{ __typename?: 'ZodFieldError', path: Array<string>, message: string }> } };
+
 export type DeletePostMutationVariables = Exact<{
   postId: Scalars['Int'];
 }>;
 
 
 export type DeletePostMutation = { __typename?: 'Mutation', deletePost: { __typename?: 'MutationDeletePostSuccess', data: { __typename?: 'Post', id: string, title: string, content?: string | null | undefined } } | { __typename?: 'NotFoundError', fieldName: string, message: string } };
+
+export type ForgotPasswordMutationVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+
+export type ForgotPasswordMutation = { __typename?: 'Mutation', forgotPassword: { __typename?: 'MutationForgotPasswordSuccess', data: boolean } | { __typename?: 'ZodError', message: string, fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
 
 export type LoginMutationVariables = Exact<{
   email: Scalars['String'];
@@ -204,6 +246,34 @@ export const NormalUserFragmentDoc = gql`
   email
 }
     `;
+export const ChangePasswordDocument = gql`
+    mutation changePassword($newPassword: String!, $token: String!) {
+  changePassword(newPassword: $newPassword, token: $token) {
+    ... on MutationChangePasswordSuccess {
+      data {
+        ...NormalUser
+      }
+    }
+    ... on ZodError {
+      fieldErrors {
+        path
+        message
+      }
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
+    ${NormalUserFragmentDoc}`;
+
+export function useChangePasswordMutation() {
+  return Urql.useMutation<ChangePasswordMutation, ChangePasswordMutationVariables>(ChangePasswordDocument);
+};
 export const DeletePostDocument = gql`
     mutation deletePost($postId: Int!) {
   deletePost(id: $postId) {
@@ -227,6 +297,28 @@ export const DeletePostDocument = gql`
 
 export function useDeletePostMutation() {
   return Urql.useMutation<DeletePostMutation, DeletePostMutationVariables>(DeletePostDocument);
+};
+export const ForgotPasswordDocument = gql`
+    mutation forgotPassword($email: String!) {
+  forgotPassword(email: $email) {
+    ... on MutationForgotPasswordSuccess {
+      data
+    }
+    ... on ZodError {
+      fieldErrors {
+        message
+        path
+      }
+    }
+    ... on Error {
+      message
+    }
+  }
+}
+    `;
+
+export function useForgotPasswordMutation() {
+  return Urql.useMutation<ForgotPasswordMutation, ForgotPasswordMutationVariables>(ForgotPasswordDocument);
 };
 export const LoginDocument = gql`
     mutation login($email: String!, $password: String!) {
