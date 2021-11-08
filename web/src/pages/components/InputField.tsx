@@ -5,6 +5,7 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Textarea,
 } from "@chakra-ui/react";
 
 type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -20,6 +21,10 @@ const InputField: React.FC<InputFieldProps> = ({
   ...props
 }) => {
   const [field, { error }] = useField(props);
+  let InputOrTextarea = Input as any;
+  if (textarea) {
+    InputOrTextarea = Textarea;
+  }
   return (
     <FormControl
       isInvalid={
@@ -27,7 +32,7 @@ const InputField: React.FC<InputFieldProps> = ({
       }
     >
       <FormLabel htmlFor={field.name}>{label}</FormLabel>
-      <Input
+      <InputOrTextarea
         {...field}
         {...props}
         id={field.name}

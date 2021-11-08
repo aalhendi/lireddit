@@ -30,15 +30,12 @@ type Mutation {
     token: String!
   ): MutationChangePasswordResult!
   createPost(
-    """Author ID"""
-    authorId: Int!
-
     """Content"""
     content: String
 
     """Title"""
     title: String!
-  ): Post!
+  ): MutationCreatePostResult!
   deletePost(
     """ID"""
     id: Int!
@@ -84,6 +81,12 @@ union MutationChangePasswordResult = MutationChangePasswordSuccess | NotFoundErr
 
 type MutationChangePasswordSuccess {
   data: User!
+}
+
+union MutationCreatePostResult = BaseError | MutationCreatePostSuccess | NotFoundError
+
+type MutationCreatePostSuccess {
+  data: Post!
 }
 
 union MutationDeletePostResult = MutationDeletePostSuccess | NotFoundError
@@ -134,6 +137,10 @@ union QueryPostResult = NotFoundError | QueryPostSuccess
 
 type QueryPostSuccess {
   data: Post!
+}
+
+type UnauthorizedError implements Error {
+  message: String!
 }
 
 type User {

@@ -45,7 +45,10 @@ async function main() {
           httpOnly: true, // Dont alow JS to access this cookie
           sameSite: "lax", // CSRF stuff
           secure: process.env.NODE_ENV === "production", // HTTPS only. False until prod
-          domain: process.env.FRONT_END_URL, // TODO: Change
+          domain:
+            process.env.NODE_ENV === "production"
+              ? process.env.FRONT_END_URL // Cookie only to the domain in prod
+              : undefined, // Set cookie anywhere req is sent
         },
         saveUninitialized: false,
         secret: process.env.SECRET_KEY!,

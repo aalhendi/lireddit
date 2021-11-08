@@ -1,4 +1,4 @@
-import { createClient, dedupExchange, fetchExchange, Provider } from "urql";
+import { dedupExchange, errorExchange, fetchExchange, Provider } from "urql";
 import { cacheExchange } from "@urql/exchange-graphcache";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import {
@@ -71,6 +71,11 @@ export const createUrqlClient = (ssrExchange: any) => ({
       },
     }),
     ssrExchange,
+    errorExchange({
+      onError(error) {
+        console.error(error);
+      },
+    }),
     fetchExchange,
   ],
 });

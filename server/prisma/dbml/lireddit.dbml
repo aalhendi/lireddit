@@ -13,6 +13,7 @@ Table Post {
   updatedAt DateTime [not null]
   title String [not null]
   content String
+  points Int [not null, default: 0]
   published Boolean [not null, default: false]
   author User [not null]
   authorId Int [not null]

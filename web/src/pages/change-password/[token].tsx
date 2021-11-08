@@ -14,7 +14,7 @@ import router from "next/router";
 import React from "react";
 import { useChangePasswordMutation } from "../../generated/graphql";
 import { createUrqlClient } from "../../utils/createUrqlClient";
-import { toErrorMap, toFieldError } from "../../utils/toErrorMap";
+import { toErrorMap } from "../../utils/toErrorMap";
 import InputField from "../components/InputField";
 import Wrapper from "../components/Wrapper";
 
@@ -22,7 +22,7 @@ interface changePasswordProps {
   token: string;
 }
 
-const ChangePassword: NextPage<changePasswordProps> = ({ token }) => {
+const ChangePassword: NextPage<changePasswordProps> = ({}) => {
   const [{}, changePassword] = useChangePasswordMutation();
   const [error, setError] = React.useState<Record<string, string> | null>(null);
   return (
@@ -42,7 +42,10 @@ const ChangePassword: NextPage<changePasswordProps> = ({ token }) => {
             // TODO: Add front-end validation
             const response = await changePassword({
               newPassword: values.newPassword,
-              token,
+              token:
+                typeof router.query.token === "string"
+                  ? router.query.token
+                  : "",
             });
             if (
               response.data?.changePassword.__typename ===
@@ -73,6 +76,8 @@ const ChangePassword: NextPage<changePasswordProps> = ({ token }) => {
                   label="Password"
                   type="password"
                   placeholder="new password"
+                  required
+                  min={6}
                 />
               </Box>
               <Button
@@ -89,12 +94,6 @@ const ChangePassword: NextPage<changePasswordProps> = ({ token }) => {
       </Wrapper>
     </>
   );
-};
-
-ChangePassword.getInitialProps = ({ query }) => {
-  return {
-    token: query.token as string,
-  };
 };
 
 export default withUrqlClient(createUrqlClient)(ChangePassword);

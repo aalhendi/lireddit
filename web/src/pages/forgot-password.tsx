@@ -71,6 +71,7 @@ const ForgotPassword: NextPage<forgotPasswordProps> = ({}) => {
                     placeholder="name@example.com"
                     label="E-mail"
                     type="email"
+                    required
                   />
                 </Box>
                 <Button

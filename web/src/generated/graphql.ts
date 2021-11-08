@@ -44,7 +44,7 @@ export type LengthError = Error & {
 export type Mutation = {
   __typename?: 'Mutation';
   changePassword: MutationChangePasswordResult;
-  createPost: Post;
+  createPost: MutationCreatePostResult;
   deletePost: MutationDeletePostResult;
   forgotPassword: MutationForgotPasswordResult;
   login: MutationLoginResult;
@@ -61,7 +61,6 @@ export type MutationChangePasswordArgs = {
 
 
 export type MutationCreatePostArgs = {
-  authorId: Scalars['Int'];
   content?: Maybe<Scalars['String']>;
   title: Scalars['String'];
 };
@@ -102,6 +101,13 @@ export type MutationChangePasswordResult = MutationChangePasswordSuccess | NotFo
 export type MutationChangePasswordSuccess = {
   __typename?: 'MutationChangePasswordSuccess';
   data: User;
+};
+
+export type MutationCreatePostResult = BaseError | MutationCreatePostSuccess | NotFoundError;
+
+export type MutationCreatePostSuccess = {
+  __typename?: 'MutationCreatePostSuccess';
+  data: Post;
 };
 
 export type MutationDeletePostResult = MutationDeletePostSuccess | NotFoundError;
@@ -164,6 +170,11 @@ export type QueryPostSuccess = {
   data: Post;
 };
 
+export type UnauthorizedError = Error & {
+  __typename?: 'UnauthorizedError';
+  message: Scalars['String'];
+};
+
 export type User = {
   __typename?: 'User';
   email: Scalars['String'];
@@ -192,6 +203,14 @@ export type ChangePasswordMutationVariables = Exact<{
 
 
 export type ChangePasswordMutation = { __typename?: 'Mutation', changePassword: { __typename?: 'MutationChangePasswordSuccess', data: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } } | { __typename?: 'NotFoundError', fieldName: string, message: string } | { __typename?: 'ZodError', message: string, fieldErrors: Array<{ __typename?: 'ZodFieldError', path: Array<string>, message: string }> } };
+
+export type CreatePostMutationVariables = Exact<{
+  title: Scalars['String'];
+  content?: Maybe<Scalars['String']>;
+}>;
+
+
+export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'BaseError', message: string } | { __typename?: 'MutationCreatePostSuccess', data: { __typename?: 'Post', id: string, title: string, content?: string | null | undefined } } | { __typename?: 'NotFoundError', fieldName: string, message: string } };
 
 export type DeletePostMutationVariables = Exact<{
   postId: Scalars['Int'];
@@ -273,6 +292,33 @@ export const ChangePasswordDocument = gql`
 
 export function useChangePasswordMutation() {
   return Urql.useMutation<ChangePasswordMutation, ChangePasswordMutationVariables>(ChangePasswordDocument);
+};
+export const CreatePostDocument = gql`
+    mutation createPost($title: String!, $content: String) {
+  createPost(title: $title, content: $content) {
+    ... on MutationCreatePostSuccess {
+      data {
+        id
+        title
+        content
+      }
+    }
+    ... on BaseError {
+      message
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
+    `;
+
+export function useCreatePostMutation() {
+  return Urql.useMutation<CreatePostMutation, CreatePostMutationVariables>(CreatePostDocument);
 };
 export const DeletePostDocument = gql`
     mutation deletePost($postId: Int!) {

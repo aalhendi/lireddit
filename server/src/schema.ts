@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import ErrorsPlugin from "@giraphql/plugin-errors";
 import PrismaPlugin from "@giraphql/plugin-prisma";
 import ValidationPlugin from "@giraphql/plugin-validation";
+import ScopeAuthPlugin from "@giraphql/plugin-scope-auth";
 import PrismaTypes from "@giraphql/plugin-prisma/generated"; // default generator location, can be changed in schema
 import argon2 from "argon2";
 import { ZodFormattedError, ZodError } from "zod";
@@ -34,11 +35,19 @@ const builder = new SchemaBuilder<{
     req: express.Request;
     res: express.Response;
   };
+  // Types used for scope parameters
+  AuthScopes: {
+    isLoggedIn: boolean;
+  };
 }>({
-  plugins: [ErrorsPlugin, ValidationPlugin, PrismaPlugin],
+  plugins: [ErrorsPlugin, ScopeAuthPlugin, ValidationPlugin, PrismaPlugin],
   prisma: {
     client: prisma,
   },
+  // scope initializer, create the scopes and scope loaders for each request
+  authScopes: async (context) => ({
+    isLoggedIn: !!context.req.session.userId,
+  }),
 });
 
 const ErrorInterface = builder.interfaceRef<Error>("Error").implement({
@@ -89,6 +98,13 @@ class AlreadyExistsError extends Error {
   }
 }
 
+class UnauthorizedError extends Error {
+  constructor() {
+    super(`Unauthorized`);
+    this.name = "UnauthorizedError";
+  }
+}
+
 builder.objectType(LengthError, {
   name: "LengthError",
   interfaces: [ErrorInterface],
@@ -121,6 +137,12 @@ builder.objectType(AlreadyExistsError, {
   fields: (t) => ({
     fieldName: t.exposeString("fieldName"),
   }),
+});
+
+builder.objectType(UnauthorizedError, {
+  name: "UnauthorizedError",
+  interfaces: [ErrorInterface],
+  isTypeOf: (obj) => obj instanceof UnauthorizedError,
 });
 
 // Util for flattening zod errors into something easier to represent in your Schema.
@@ -224,7 +246,6 @@ builder.queryType({
     }),
     me: t.prismaField({
       type: "User",
-      // TODO: Change to unauthorized error (?)
       nullable: true,
       resolve: async (_query, _root, _args, ctx, _info) => {
         if (!ctx.req.session.userId) {
@@ -248,6 +269,12 @@ builder.mutationType({
     /* Post Mutations */
     createPost: t.prismaField({
       type: "Post",
+      authScopes: {
+        isLoggedIn: true,
+      },
+      errors: {
+        types: [Error, NotFoundError],
+      },
       args: {
         title: t.arg({
           type: "String",
@@ -259,20 +286,24 @@ builder.mutationType({
           required: false,
           description: "Content",
         }),
-        authorId: t.arg({
-          type: "Int",
-          required: true,
-          description: "Author ID",
-        }),
       },
-      resolve: async (_query, _root, args, _ctx, _info) =>
-        await prisma.post.create({
+      resolve: async (_query, _root, args, ctx, _info) => {
+        const foundUser = await prisma.user.findUnique({
+          where: {
+            id: ctx.req.session.userId,
+          },
+        });
+        if (!foundUser) {
+          throw new NotFoundError("user");
+        }
+        return await prisma.post.create({
           data: {
             title: args.title,
             content: args.content,
-            authorId: args.authorId,
+            authorId: foundUser.id,
           },
-        }),
+        });
+      },
     }),
     updatePost: t.prismaField({
       type: "Post",
@@ -417,7 +448,6 @@ builder.mutationType({
       },
       resolve: async (_query, _root, args, ctx, _info) => {
         const foundUser = await prisma.user.findUnique({
-          // rejectOnNotFound: true,
           where: {
             email: args.email,
           },
@@ -474,8 +504,7 @@ builder.mutationType({
           },
         });
         if (!foundUser) {
-          // User doesnt exist. But how to prevent malicious actors?
-          // TODO: Maybe have a response like: "if this user exists, we'll mail you"
+          // Exist early but always return true to prevent malicous actors
           return true;
         }
         const token = uuidv4();

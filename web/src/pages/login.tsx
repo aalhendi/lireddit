@@ -23,7 +23,6 @@ const Login: NextPage<loginProps> = ({}) => {
       <Formik
         initialValues={{ email: "", password: "" }}
         onSubmit={async (values, actions) => {
-          // TODO: Add front-end validation
           const response = await login(values);
           if (response.data?.login.__typename === "ZodError") {
             /* Backend validation response */
@@ -52,11 +51,15 @@ const Login: NextPage<loginProps> = ({}) => {
                 placeholder="name@example.com"
                 label="E-mail"
                 type="email"
+                required
               />
               <InputField
                 name="password"
                 label="Password"
                 type="password"
+                required
+                min={6}
+                // TODO: Add front-end validation
                 placeholder="password"
               />
               <Flex mt={1}>

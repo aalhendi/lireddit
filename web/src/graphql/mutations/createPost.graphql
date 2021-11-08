@@ -1,0 +1,21 @@
+mutation createPost($title: String!, $content: String) {
+  createPost(title: $title, content: $content) {
+    ... on MutationCreatePostSuccess {
+      data {
+        id
+        title
+        content
+      }
+    }
+    ... on BaseError {
+      message
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
