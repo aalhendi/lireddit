@@ -155,7 +155,7 @@ export type Query = {
   __typename?: 'Query';
   me?: Maybe<User>;
   post: QueryPostResult;
-  posts: Array<Post>;
+  posts: QueryPostsResult;
 };
 
 
@@ -163,11 +163,24 @@ export type QueryPostArgs = {
   id: Scalars['Int'];
 };
 
-export type QueryPostResult = NotFoundError | QueryPostSuccess;
+
+export type QueryPostsArgs = {
+  cursor?: Maybe<Scalars['ID']>;
+  limit: Scalars['Int'];
+};
+
+export type QueryPostResult = BaseError | NotFoundError | QueryPostSuccess;
 
 export type QueryPostSuccess = {
   __typename?: 'QueryPostSuccess';
   data: Post;
+};
+
+export type QueryPostsResult = BaseError | QueryPostsSuccess;
+
+export type QueryPostsSuccess = {
+  __typename?: 'QueryPostsSuccess';
+  data: Array<Post>;
 };
 
 export type UnauthorizedError = Error & {
@@ -253,10 +266,13 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } | null | undefined };
 
-export type PostsQueryVariables = Exact<{ [key: string]: never; }>;
+export type PostsQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  cursor?: Maybe<Scalars['ID']>;
+}>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined }> };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename: 'BaseError', message: string } | { __typename: 'QueryPostsSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined }> } };
 
 export const NormalUserFragmentDoc = gql`
     fragment NormalUser on User {
@@ -439,11 +455,22 @@ export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'q
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
 };
 export const PostsDocument = gql`
-    query posts {
-  posts {
-    id
-    title
-    content
+    query posts($limit: Int!, $cursor: ID) {
+  posts(limit: $limit, cursor: $cursor) {
+    __typename
+    ... on Error {
+      message
+    }
+    ... on BaseError {
+      message
+    }
+    ... on QueryPostsSuccess {
+      data {
+        id
+        title
+        content
+      }
+    }
   }
 }
     `;

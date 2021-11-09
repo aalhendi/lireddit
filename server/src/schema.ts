@@ -215,12 +215,47 @@ builder.queryType({
   fields: (t) => ({
     posts: t.prismaField({
       type: ["Post"],
-      resolve: async () => await prisma.post.findMany({}),
+      errors: {
+        types: [Error],
+      },
+      args: {
+        cursor: t.arg({
+          type: "ID",
+          description: "Pointer to start from",
+          required: false,
+        }),
+        limit: t.arg({
+          type: "Int",
+          description: "Number of posts to fetch",
+          required: true,
+        }),
+      },
+      resolve: async (_query, _root, args, _ctx, _info) => {
+        if (args.cursor) {
+          const secondQuery = await prisma.post.findMany({
+            orderBy: { createdAt: "asc" },
+            take: Math.min(50, args.limit), // Pull user limit or 50 as hard-cap
+            skip: 1, // Skip the cursor
+            cursor: {
+              id:
+                typeof args.cursor === "string"
+                  ? parseInt(args.cursor)
+                  : args.cursor,
+            },
+          });
+          return secondQuery;
+        }
+        const firstQuery = await prisma.post.findMany({
+          orderBy: { createdAt: "asc" },
+          take: args.limit,
+        });
+        return firstQuery;
+      },
     }),
     post: t.prismaField({
       type: "Post",
       errors: {
-        types: [NotFoundError],
+        types: [NotFoundError, Error],
         // directResult: true,
       },
       args: {

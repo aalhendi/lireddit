@@ -1,7 +1,18 @@
-query posts {
-  posts {
-    id
-    title
-    content
+query posts($limit: Int!, $cursor: ID) {
+  posts(limit: $limit, cursor: $cursor) {
+    __typename
+    ... on Error {
+      message
+    }
+    ... on BaseError {
+      message
+    }
+    ... on QueryPostsSuccess {
+      data {
+        id
+        title
+        content
+      }
+    }
   }
 }

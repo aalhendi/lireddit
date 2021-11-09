@@ -4,6 +4,8 @@ schema: "http://localhost:8000/graphql"
 documents: "src/graphql/**/*.graphql"
 generates:
   src/generated/graphql.ts:
+    # config:
+    #   nonOptionalTypename: true
     plugins:
       - "typescript"
       - "typescript-operations"

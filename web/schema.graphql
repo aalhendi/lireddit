@@ -130,13 +130,25 @@ type Query {
     """ID"""
     id: Int!
   ): QueryPostResult!
-  posts: [Post!]!
+  posts(
+    """Pointer to start from"""
+    cursor: ID
+
+    """Number of posts to fetch"""
+    limit: Int!
+  ): QueryPostsResult!
 }
 
-union QueryPostResult = NotFoundError | QueryPostSuccess
+union QueryPostResult = BaseError | NotFoundError | QueryPostSuccess
 
 type QueryPostSuccess {
   data: Post!
+}
+
+union QueryPostsResult = BaseError | QueryPostsSuccess
+
+type QueryPostsSuccess {
+  data: [Post!]!
 }
 
 type UnauthorizedError implements Error {
