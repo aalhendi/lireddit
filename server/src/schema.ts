@@ -1,17 +1,17 @@
 import SchemaBuilder from "@giraphql/core";
-import { PrismaClient } from "@prisma/client";
 import ErrorsPlugin from "@giraphql/plugin-errors";
 import PrismaPlugin from "@giraphql/plugin-prisma";
-import ValidationPlugin from "@giraphql/plugin-validation";
-import ScopeAuthPlugin from "@giraphql/plugin-scope-auth";
 import PrismaTypes from "@giraphql/plugin-prisma/generated"; // default generator location, can be changed in schema
+import ScopeAuthPlugin from "@giraphql/plugin-scope-auth";
+import ValidationPlugin from "@giraphql/plugin-validation";
+import { PrismaClient } from "@prisma/client";
 import argon2 from "argon2";
-import { ZodFormattedError, ZodError } from "zod";
 import express from "express";
-import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "./constants";
-import { sendEmail } from "./utils/sendEmail";
 import { v4 as uuidv4 } from "uuid";
+import { ZodError, ZodFormattedError } from "zod";
+import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "./constants";
 import { redis } from "./redis";
+import { sendEmail } from "./utils/sendEmail";
 
 const prisma = new PrismaClient({});
 
@@ -214,6 +214,8 @@ builder.prismaObject("Post", {
 builder.queryType({
   fields: (t) => ({
     posts: t.prismaField({
+      // TODO: Add Snippet field in return instead of showing all of the content
+      // TODO: hasMore boolean to see if we have already fetched all data
       type: ["Post"],
       errors: {
         types: [Error],
