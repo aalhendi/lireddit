@@ -16,14 +16,14 @@ interface loginProps {}
 
 const Login: NextPage<loginProps> = ({}) => {
   const router = useRouter();
-  const [, login] = useLoginMutation();
+  const [login] = useLoginMutation();
 
   return (
     <Wrapper>
       <Formik
         initialValues={{ email: "", password: "" }}
         onSubmit={async (values, actions) => {
-          const response = await login(values);
+          const response = await login({ variables: values });
           if (response.data?.login.__typename === "ZodError") {
             /* Backend validation response */
             actions.setErrors(toErrorMap(response.data.login.fieldErrors));
@@ -85,4 +85,4 @@ const Login: NextPage<loginProps> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(Login);
+export default Login;

@@ -9,11 +9,9 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { NextPage } from "next";
-import { withUrqlClient } from "next-urql";
 import router from "next/router";
 import React from "react";
 import { useCreatePostMutation } from "../generated/graphql";
-import { createUrqlClient } from "../utils/createUrqlClient";
 import useIsAuth from "../utils/useIsAuth";
 import InputField from "./components/InputField";
 import Wrapper from "./components/Wrapper";
@@ -21,7 +19,7 @@ import Wrapper from "./components/Wrapper";
 interface createPostProps {}
 
 const CreatePost: NextPage<createPostProps> = ({}) => {
-  const [{}, createPost] = useCreatePostMutation();
+  const [createPost] = useCreatePostMutation();
   const [error, setError] = React.useState<string | null>(null);
   // TODO: Spinner while fetching from useIsAuth
   useIsAuth();
@@ -40,7 +38,7 @@ const CreatePost: NextPage<createPostProps> = ({}) => {
         <Formik
           initialValues={{ title: "", content: "" }}
           onSubmit={async (values, actions) => {
-            const response = await createPost(values);
+            const response = await createPost({ variables: values });
             if (
               response.data?.createPost.__typename ===
               "MutationCreatePostSuccess"
@@ -91,4 +89,4 @@ const CreatePost: NextPage<createPostProps> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(CreatePost);
+export default CreatePost;

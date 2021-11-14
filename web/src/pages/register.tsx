@@ -15,7 +15,7 @@ interface registerProps {}
 
 const Register: NextPage<registerProps> = ({}) => {
   const router = useRouter();
-  const [, register] = useRegisterMutation();
+  const [register] = useRegisterMutation();
 
   return (
     <Wrapper>
@@ -23,7 +23,7 @@ const Register: NextPage<registerProps> = ({}) => {
         initialValues={{ email: "", password: "" }}
         onSubmit={async (values, actions) => {
           // TODO: Improve error handling
-          const response = await register(values);
+          const response = await register({ variables: values });
           if (response.data?.register.__typename === "ZodError") {
             /* Backend validation response */
             actions.setErrors(toErrorMap(response.data.register.fieldErrors));
@@ -74,4 +74,4 @@ const Register: NextPage<registerProps> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(Register);
+export default Register;

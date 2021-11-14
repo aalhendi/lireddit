@@ -5,19 +5,19 @@ import NextLink from "next/link";
 import { useLogoutMutation, useMeQuery } from "../../generated/graphql";
 import { Button } from "@chakra-ui/button";
 import { isServer } from "../../utils/isServer";
-import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../../utils/createUrqlClient";
+import { useApolloClient } from "@apollo/client";
 
 interface NavBarProps {}
 
 const NavBar: React.FC<NavBarProps> = ({}) => {
   const router = useRouter();
   const isActive = router.pathname === "/";
-  const [{ data, fetching: meFetching }] = useMeQuery({ pause: isServer() });
-  const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
+  const { data, loading: meLoading } = useMeQuery({ skip: isServer() });
+  const [logout, { loading: logoutLoading }] = useLogoutMutation();
+  const apolloClient = useApolloClient();
 
   let links = null;
-  if (meFetching) {
+  if (meLoading) {
     /* Data is still fetching */
     links = null;
   } else if (data?.me) {
@@ -27,8 +27,11 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
         <Text mr={2}>Hello {data.me.email}</Text>
         <Button
           variant={"link"}
-          onClick={() => logout()}
-          isLoading={logoutFetching}
+          onClick={async () => {
+            logout();
+            await apolloClient.resetStore();
+          }}
+          isLoading={logoutLoading}
         >
           <Text color={"blue"}>Logout</Text>
         </Button>
@@ -76,4 +79,4 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(NavBar);
+export default NavBar;

@@ -19,7 +19,7 @@ import Wrapper from "./components/Wrapper";
 interface forgotPasswordProps {}
 
 const ForgotPassword: NextPage<forgotPasswordProps> = ({}) => {
-  const [{}, forgotPassword] = useForgotPasswordMutation();
+  const [forgotPassword] = useForgotPasswordMutation();
   const [isComplete, SetIsCompelte] = React.useState(false);
   return (
     <>
@@ -47,7 +47,7 @@ const ForgotPassword: NextPage<forgotPasswordProps> = ({}) => {
           <Formik
             initialValues={{ email: "" }}
             onSubmit={async (values, actions) => {
-              const response = await forgotPassword(values);
+              const response = await forgotPassword({ variables: values });
               if (response.data?.forgotPassword.__typename === "ZodError") {
                 /* Backend validation response */
                 actions.setErrors(
@@ -91,4 +91,4 @@ const ForgotPassword: NextPage<forgotPasswordProps> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(ForgotPassword);
+export default ForgotPassword;

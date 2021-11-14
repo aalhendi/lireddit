@@ -9,27 +9,57 @@ import { CloseButton } from "@chakra-ui/close-button";
 import { Box, Center, Heading, Link, Stack, Text } from "@chakra-ui/layout";
 import { Spinner } from "@chakra-ui/spinner";
 import type { NextPage } from "next";
-import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import React from "react";
-import { usePostsQuery } from "../generated/graphql";
-import { createUrqlClient } from "../utils/createUrqlClient";
+import { PostsQuery, usePostsQuery } from "../generated/graphql";
 
 const Home: NextPage = () => {
   const [error, setError] = React.useState<string | null>(null);
-  const [variables, setVariables] = React.useState({
-    limit: 50,
-    cursor: null as string | null,
-  });
-  const [{ fetching: postsFetching, data }] = usePostsQuery({
+  const {
+    loading: postsLoading,
+    data,
+    fetchMore,
     variables,
+  } = usePostsQuery({
+    variables: {
+      limit: 10,
+      cursor: null,
+    },
+    notifyOnNetworkStatusChange: true,
   });
 
   const loadMore = () => {
     if (data?.posts.__typename === "QueryPostsSuccess") {
-      setVariables({
-        ...variables,
-        cursor: data.posts.data[data.posts.data.length - 1].id,
+      fetchMore({
+        variables: {
+          limit: variables?.limit,
+          cursor: data.posts.data[data.posts.data.length - 1].id,
+        },
+        //   updateQuery: (prevValue, { fetchMoreResult }): PostsQuery => {
+        //     if (!fetchMoreResult) {
+        //       return prevValue;
+        //     } else if (fetchMoreResult.posts.__typename === "QueryPostsSuccess") {
+        //       return {
+        //         __typename: "Query",
+        //         posts: {
+        //           __typename: fetchMoreResult.posts.__typename,
+        //           data:
+        //             prevValue.posts.__typename === "QueryPostsSuccess"
+        //               ? [...prevValue.posts.data, ...fetchMoreResult.posts.data]
+        //               : fetchMoreResult.posts.data,
+        //         },
+        //       };
+        //     } else if (fetchMoreResult.posts.__typename === "BaseError") {
+        //       return {
+        //         posts: {
+        //           __typename: fetchMoreResult.posts.__typename,
+        //           message: fetchMoreResult.posts.message,
+        //         },
+        //       };
+        //     } else {
+        //       return {} as PostsQuery;
+        //     }
+        //   },
       });
     }
   };
@@ -55,7 +85,7 @@ const Home: NextPage = () => {
       </Center>
 
       <Box>
-        {postsFetching && !data ? (
+        {postsLoading && !data ? (
           <Spinner />
         ) : (
           <Stack spacing={8}>
@@ -72,14 +102,16 @@ const Home: NextPage = () => {
               : null}
           </Stack>
         )}
-        {data ? (
-          <Button my={4} onClick={loadMore}>
-            Load More
-          </Button>
-        ) : null}
+        <Center>
+          {data ? (
+            <Button my={4} onClick={loadMore} isLoading={postsLoading}>
+              Load More
+            </Button>
+          ) : null}
+        </Center>
       </Box>
     </>
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Home);
+export default Home;

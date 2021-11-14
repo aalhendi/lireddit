@@ -23,7 +23,7 @@ interface changePasswordProps {
 }
 
 const ChangePassword: NextPage<changePasswordProps> = ({}) => {
-  const [{}, changePassword] = useChangePasswordMutation();
+  const [changePassword] = useChangePasswordMutation();
   const [error, setError] = React.useState<Record<string, string> | null>(null);
   return (
     <>
@@ -41,11 +41,13 @@ const ChangePassword: NextPage<changePasswordProps> = ({}) => {
           onSubmit={async (values, actions) => {
             // TODO: Add front-end validation
             const response = await changePassword({
-              newPassword: values.newPassword,
-              token:
-                typeof router.query.token === "string"
-                  ? router.query.token
-                  : "",
+              variables: {
+                newPassword: values.newPassword,
+                token:
+                  typeof router.query.token === "string"
+                    ? router.query.token
+                    : "",
+              },
             });
             if (
               response.data?.changePassword.__typename ===
@@ -96,4 +98,4 @@ const ChangePassword: NextPage<changePasswordProps> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(ChangePassword);
+export default ChangePassword;
