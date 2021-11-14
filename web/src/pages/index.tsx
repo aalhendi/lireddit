@@ -35,31 +35,6 @@ const Home: NextPage = () => {
           limit: variables?.limit,
           cursor: data.posts.data[data.posts.data.length - 1].id,
         },
-        //   updateQuery: (prevValue, { fetchMoreResult }): PostsQuery => {
-        //     if (!fetchMoreResult) {
-        //       return prevValue;
-        //     } else if (fetchMoreResult.posts.__typename === "QueryPostsSuccess") {
-        //       return {
-        //         __typename: "Query",
-        //         posts: {
-        //           __typename: fetchMoreResult.posts.__typename,
-        //           data:
-        //             prevValue.posts.__typename === "QueryPostsSuccess"
-        //               ? [...prevValue.posts.data, ...fetchMoreResult.posts.data]
-        //               : fetchMoreResult.posts.data,
-        //         },
-        //       };
-        //     } else if (fetchMoreResult.posts.__typename === "BaseError") {
-        //       return {
-        //         posts: {
-        //           __typename: fetchMoreResult.posts.__typename,
-        //           message: fetchMoreResult.posts.message,
-        //         },
-        //       };
-        //     } else {
-        //       return {} as PostsQuery;
-        //     }
-        //   },
       });
     }
   };

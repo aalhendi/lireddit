@@ -2,6 +2,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 import * as React from "react";
+import { PostsQuery, PostsQueryResult } from "../generated/graphql";
 import "../styles/globals.css";
 import Layout from "./components/Layout";
 
@@ -17,7 +18,31 @@ const theme = extendTheme({ colors });
 
 const client = new ApolloClient({
   uri: "http://localhost:8000/graphql",
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          posts: {
+            keyArgs: [],
+            // TODO: Types? Why does this skip the intermediate object (ie. existing.posts.__typename)
+            merge(existing: any | undefined, incoming: any): PostsQuery {
+              if (incoming.__typename === "QueryPostsSuccess") {
+                return {
+                  ...incoming,
+                  data:
+                    existing?.__typename === "QueryPostsSuccess"
+                      ? [...existing.data, ...incoming.data]
+                      : incoming.data,
+                };
+              } else {
+                return incoming;
+              }
+            },
+          },
+        },
+      },
+    },
+  }),
   credentials: "include",
 });
 
