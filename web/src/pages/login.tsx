@@ -1,16 +1,14 @@
-import React from "react";
-import { Formik, Form } from "formik";
 import { Button } from "@chakra-ui/button";
-import Wrapper from "./components/Wrapper";
-import InputField from "./components/InputField";
 import { Box, Flex, Link, Text } from "@chakra-ui/layout";
-import { useLoginMutation } from "../generated/graphql";
-import { toErrorMap } from "../utils/toErrorMap";
-import { useRouter } from "next/dist/client/router";
-import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../utils/createUrqlClient";
+import { Form, Formik } from "formik";
 import { NextPage } from "next";
+import { useRouter } from "next/dist/client/router";
 import NextLink from "next/link";
+import React from "react";
+import { MeDocument, MeQuery, useLoginMutation } from "../generated/graphql";
+import { toErrorMap } from "../utils/toErrorMap";
+import InputField from "./components/InputField";
+import Wrapper from "./components/Wrapper";
 
 interface loginProps {}
 
@@ -23,7 +21,20 @@ const Login: NextPage<loginProps> = ({}) => {
       <Formik
         initialValues={{ email: "", password: "" }}
         onSubmit={async (values, actions) => {
-          const response = await login({ variables: values });
+          const response = await login({
+            variables: values,
+            update: (cache, { data }) => {
+              if (data?.login.__typename === "MutationLoginSuccess") {
+                cache.writeQuery<MeQuery>({
+                  query: MeDocument,
+                  data: {
+                    me: data.login.data,
+                  },
+                });
+                cache.evict({ fieldName: "posts:{}" });
+              }
+            },
+          });
           if (response.data?.login.__typename === "ZodError") {
             /* Backend validation response */
             actions.setErrors(toErrorMap(response.data.login.fieldErrors));

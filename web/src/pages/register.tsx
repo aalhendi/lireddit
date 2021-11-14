@@ -1,15 +1,13 @@
-import React from "react";
-import { Formik, Form } from "formik";
 import { Button } from "@chakra-ui/button";
-import Wrapper from "./components/Wrapper";
-import InputField from "./components/InputField";
 import { Box } from "@chakra-ui/layout";
-import { useRegisterMutation } from "../generated/graphql";
-import { toFieldError, toErrorMap } from "../utils/toErrorMap";
-import { useRouter } from "next/dist/client/router";
-import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../utils/createUrqlClient";
+import { Form, Formik } from "formik";
 import { NextPage } from "next";
+import { useRouter } from "next/dist/client/router";
+import React from "react";
+import { MeDocument, MeQuery, useRegisterMutation } from "../generated/graphql";
+import { toErrorMap, toFieldError } from "../utils/toErrorMap";
+import InputField from "./components/InputField";
+import Wrapper from "./components/Wrapper";
 
 interface registerProps {}
 
@@ -23,7 +21,19 @@ const Register: NextPage<registerProps> = ({}) => {
         initialValues={{ email: "", password: "" }}
         onSubmit={async (values, actions) => {
           // TODO: Improve error handling
-          const response = await register({ variables: values });
+          const response = await register({
+            variables: values,
+            update: (cache, { data }) => {
+              if (data?.register.__typename === "MutationRegisterSuccess") {
+                cache.writeQuery<MeQuery>({
+                  query: MeDocument,
+                  data: {
+                    me: data.register.data,
+                  },
+                });
+              }
+            },
+          });
           if (response.data?.register.__typename === "ZodError") {
             /* Backend validation response */
             actions.setErrors(toErrorMap(response.data.register.fieldErrors));

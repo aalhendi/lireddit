@@ -38,7 +38,13 @@ const CreatePost: NextPage<createPostProps> = ({}) => {
         <Formik
           initialValues={{ title: "", content: "" }}
           onSubmit={async (values, actions) => {
-            const response = await createPost({ variables: values });
+            const response = await createPost({
+              variables: values,
+              update: (cache) => {
+                /* Evicts all posts so we fetch a fresh set */
+                cache.evict({ fieldName: "posts:{}" });
+              },
+            });
             if (
               response.data?.createPost.__typename ===
               "MutationCreatePostSuccess"

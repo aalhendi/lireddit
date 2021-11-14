@@ -9,11 +9,13 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { NextPage } from "next";
-import { withUrqlClient } from "next-urql";
 import router from "next/router";
 import React from "react";
-import { useChangePasswordMutation } from "../../generated/graphql";
-import { createUrqlClient } from "../../utils/createUrqlClient";
+import {
+  MeDocument,
+  MeQuery,
+  useChangePasswordMutation,
+} from "../../generated/graphql";
 import { toErrorMap } from "../../utils/toErrorMap";
 import InputField from "../components/InputField";
 import Wrapper from "../components/Wrapper";
@@ -47,6 +49,19 @@ const ChangePassword: NextPage<changePasswordProps> = ({}) => {
                   typeof router.query.token === "string"
                     ? router.query.token
                     : "",
+              },
+              update: (cache, { data }) => {
+                if (
+                  data?.changePassword.__typename ===
+                  "MutationChangePasswordSuccess"
+                ) {
+                  cache.writeQuery<MeQuery>({
+                    query: MeDocument,
+                    data: {
+                      me: data.changePassword.data,
+                    },
+                  });
+                }
               },
             });
             if (

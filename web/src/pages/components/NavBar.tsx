@@ -28,7 +28,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
         <Button
           variant={"link"}
           onClick={async () => {
-            logout();
+            await logout();
             await apolloClient.resetStore();
           }}
           isLoading={logoutLoading}
