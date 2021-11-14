@@ -1,11 +1,11 @@
-import { Box, Flex, Heading, Link, Text } from "@chakra-ui/layout";
-import React from "react";
-import { useRouter } from "next/router";
-import NextLink from "next/link";
-import { useLogoutMutation, useMeQuery } from "../../generated/graphql";
-import { Button } from "@chakra-ui/button";
-import { isServer } from "../../utils/isServer";
 import { useApolloClient } from "@apollo/client";
+import { Button } from "@chakra-ui/button";
+import { Box, Flex, Heading, Link, Text } from "@chakra-ui/layout";
+import NextLink from "next/link";
+import { useRouter } from "next/router";
+import React from "react";
+import { useLogoutMutation, useMeQuery } from "../../generated/graphql";
+import { isServer } from "../../utils/isServer";
 
 interface NavBarProps {}
 

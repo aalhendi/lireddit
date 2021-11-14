@@ -2,7 +2,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 import * as React from "react";
-import { PostsQuery, PostsQueryResult } from "../generated/graphql";
+import { PostsQuery } from "../generated/graphql";
 import "../styles/globals.css";
 import Layout from "./components/Layout";
 

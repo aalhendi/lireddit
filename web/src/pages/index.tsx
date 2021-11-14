@@ -11,7 +11,7 @@ import { Spinner } from "@chakra-ui/spinner";
 import type { NextPage } from "next";
 import NextLink from "next/link";
 import React from "react";
-import { PostsQuery, usePostsQuery } from "../generated/graphql";
+import { usePostsQuery } from "../generated/graphql";
 
 const Home: NextPage = () => {
   const [error, setError] = React.useState<string | null>(null);
@@ -61,7 +61,9 @@ const Home: NextPage = () => {
 
       <Box>
         {postsLoading && !data ? (
-          <Spinner />
+          <Center>
+            <Spinner />
+          </Center>
         ) : (
           <Stack spacing={8}>
             {data?.posts.__typename === "QueryPostsSuccess"
@@ -89,4 +91,5 @@ const Home: NextPage = () => {
   );
 };
 
+// TODO: SSR Home component
 export default Home;
