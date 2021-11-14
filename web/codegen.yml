@@ -9,7 +9,6 @@ generates:
     plugins:
       - "typescript"
       - "typescript-operations"
-      # - "typescript-urql"
       - "typescript-react-apollo"
   # This prints an SDL schema.
   schema.graphql:
@@ -19,4 +18,3 @@ generates:
   #   plugins:
   #     - "typescript"
   #     - "typescript-operations"
-  #     - "typescript-urql"
