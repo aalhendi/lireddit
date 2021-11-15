@@ -12,12 +12,12 @@ generator giraphql {
 }
 
 generator dbml {
-  provider   = "prisma-dbml-generator"
+  provider            = "prisma-dbml-generator"
   // output     = "../dbml"
-  outputName = "lireddit.dbml"
-  projectName = "lireddit"
+  outputName          = "lireddit.dbml"
+  projectName         = "lireddit"
   projectDatabaseType = "PostgreSQL"
-  projectNote = "A Reddit clone"
+  projectNote         = "A Reddit clone"
   // projectNotePath = ""
   // manyToMany = false
 }
@@ -33,15 +33,30 @@ datasource db {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String   @db.VarChar(255)
+  id        Int            @id @default(autoincrement())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  title     String         @db.VarChar(255)
   content   String?
-  points    Int      @default(0)
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
+  points    UsersOnPosts[]
+  published Boolean        @default(false)
+  author    User           @relation(fields: [authorId], references: [id])
   authorId  Int
+}
+
+model Votes {
+  id    Int @id @default(autoincrement())
+  value Int
+}
+
+model UsersOnPosts {
+  post   Post    @relation(fields: [postId], references: [id])
+  postId Int // relation scalar field (used in the `@relation` attribute above)
+  user   User    @relation(fields: [userId], references: [id])
+  userId Int // relation scalar field (used in the `@relation` attribute above)
+  value  Boolean // true is upvote, false is downvote
+
+  @@id([postId, userId])
 }
 
 model Profile {
@@ -52,11 +67,11 @@ model Profile {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  email    String   @unique
+  id       Int            @id @default(autoincrement())
+  email    String         @unique
   password String
   name     String?
   posts    Post[]
+  votes    UsersOnPosts[]
   profile  Profile?
 }
-

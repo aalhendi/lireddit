@@ -27,7 +27,7 @@ for (let i = 0; i < 100; ++i) {
         id: 1, // Can random this too if we make a bunch of users
       },
     },
-    points: Math.round(Math.random() * 100),
+    // points: Math.round(Math.random() * 100),
   });
 }
 

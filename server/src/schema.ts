@@ -16,6 +16,7 @@ import { sendEmail } from "./utils/sendEmail";
 const prisma = new PrismaClient({});
 
 // TODO: Refactor
+// TODO: Backend permission conditional. Post owner can see own email but others shouldnt be able to
 
 class User {
   userId: string;
@@ -202,12 +203,47 @@ builder.prismaObject("User", {
   }),
 });
 
+// builder.prismaObject("Votes", {
+//   name: "Votes", // Optional, default = prisma model
+//   findUnique: null,
+//   fields: (t) => ({
+//     id: t.exposeID("id"),
+//     value: t.exposeInt("value"),
+//   }),
+// });
+
+// builder.prismaObject("UsersOnPosts", {
+//   name: "UsersOnPosts", // Optional, default = prisma model
+//   findUnique: null,
+//   fields: (t) => ({
+//     postId: t.exposeID("postId"),
+//     userId: t.exposeID("userId"),
+//   }),
+// });
+
 builder.prismaObject("Post", {
   findUnique: null,
   fields: (t) => ({
     id: t.exposeID("id"),
     title: t.exposeString("title"),
     content: t.exposeString("content", { nullable: true }),
+    // points: t.relation("points", {
+    //   resolve: (query, post) =>
+    //     prisma.usersOnPosts.findMany({
+    //       ...query,
+    //       where: {
+    //         postId: post.id,
+    //       },
+    //     }),
+    // }),
+    author: t.relation("author", {
+      resolve: (query, post) =>
+        prisma.user.findUnique({
+          ...query,
+          rejectOnNotFound: true,
+          where: { id: post.authorId },
+        }),
+    }),
   }),
 });
 
@@ -405,6 +441,57 @@ builder.mutationType({
         } else {
           throw new NotFoundError("id");
         }
+      },
+    }),
+
+    /* Votes */
+    vote: t.boolean({
+      args: {
+        postId: t.arg({
+          type: "Int",
+          required: true,
+          description: "Post ID",
+        }),
+        value: t.arg({
+          type: "Boolean",
+          required: true,
+          description: "Upvote(True) or Downvote(False)",
+        }),
+      },
+      authScopes: {
+        isLoggedIn: true,
+      },
+      errors: {
+        types: [InvalidCredentialsError],
+      },
+      resolve: async (_parent, args, ctx) => {
+        const foundUser = await prisma.user.findUnique({
+          where: {
+            id: ctx.req.session.userId,
+          },
+        });
+        if (!foundUser) {
+          return false;
+        }
+        // TODO?: Transaction
+        await prisma.usersOnPosts.create({
+          data: {
+            postId: args.postId,
+            userId: foundUser.id,
+            value: args.value,
+          },
+        });
+
+        // await prisma.post.update({
+        //   where: {
+        //     id: args.postId,
+        //   },
+        //   data: {
+        //     points:1, // why?
+        //   },
+        // });
+
+        return true;
       },
     }),
 

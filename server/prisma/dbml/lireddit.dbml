@@ -13,10 +13,27 @@ Table Post {
   updatedAt DateTime [not null]
   title String [not null]
   content String
-  points Int [not null, default: 0]
+  points UsersOnPosts [not null]
   published Boolean [not null, default: false]
   author User [not null]
   authorId Int [not null]
+}
+
+Table Votes {
+  id Int [pk, increment]
+  value Int [not null]
+}
+
+Table UsersOnPosts {
+  post Post [not null]
+  postId Int [not null]
+  user User [not null]
+  userId Int [not null]
+  value Boolean [not null]
+
+  indexes {
+    (postId, userId) [pk]
+  }
 }
 
 Table Profile {
@@ -32,9 +49,14 @@ Table User {
   password String [not null]
   name String
   posts Post [not null]
+  votes UsersOnPosts [not null]
   profile Profile
 }
 
 Ref: Post.authorId > User.id
+
+Ref: UsersOnPosts.postId > Post.id
+
+Ref: UsersOnPosts.userId > User.id
 
 Ref: Profile.userId - User.id
