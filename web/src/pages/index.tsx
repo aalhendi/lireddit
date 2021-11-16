@@ -81,13 +81,19 @@ const Home: NextPage = () => {
                     <Flex p={5} shadow="md" borderWidth="1px">
                       <SideVotes post={p} />
                       {/* TODO: Refactor into component */}
-                      <Box>
-                        <Heading fontSize="xl">{p.title}</Heading>
-                        {/* TODO: Add username and make this username */}
-                        <Text>By: {p.author.email}</Text>
-                        {/* TODO: Field resolver in backend to return textSnippet instead of loading all text and splicing on front end */}
-                        <Text mt={4}>{p.content?.slice(0, 50)}</Text>
-                      </Box>
+                      <Link
+                        as={NextLink}
+                        href={`/post/${encodeURIComponent(p.id)}`}
+                        passHref
+                      >
+                        <Box w={"full"}>
+                          <Heading fontSize="xl">{p.title}</Heading>
+                          {/* TODO: Add username and make this username */}
+                          <Text>By: {p.author.email}</Text>
+                          {/* TODO: Field resolver in backend to return textSnippet instead of loading all text and splicing on front end */}
+                          <Text mt={4}>{p.content?.slice(0, 50)}</Text>
+                        </Box>
+                      </Link>
                     </Flex>
                   </>
                 ))

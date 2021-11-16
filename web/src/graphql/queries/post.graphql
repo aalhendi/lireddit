@@ -1,0 +1,25 @@
+query post($postId: Int!) {
+  post(id: $postId) {
+    __typename
+    ... on QueryPostSuccess {
+      data {
+        author {
+          id
+          name
+          email
+        }
+        id
+        title
+        content
+        points
+      }
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}

@@ -5,6 +5,7 @@ mutation vote($postId: Int!, $value: Boolean!) {
       data
     }
     ... on NotFoundError {
+      fieldName
       message
     }
     ... on Error {

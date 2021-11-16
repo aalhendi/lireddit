@@ -66,7 +66,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
   }
 
   return (
-    <Flex bg={"gray.100"} p={4}>
+    <Flex bg={"gray.100"} p={4} align={"center"}>
       <Box>
         <Heading size={"md"} as={"h4"}>
           <Link as={NextLink} href={"/"} passHref>

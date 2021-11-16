@@ -283,12 +283,19 @@ export type VoteMutationVariables = Exact<{
 }>;
 
 
-export type VoteMutation = { __typename?: 'Mutation', vote: { __typename: 'BaseError', message: string } | { __typename: 'MutationVoteSuccess', data: boolean } | { __typename: 'NotFoundError', message: string } };
+export type VoteMutation = { __typename?: 'Mutation', vote: { __typename: 'BaseError', message: string } | { __typename: 'MutationVoteSuccess', data: boolean } | { __typename: 'NotFoundError', fieldName: string, message: string } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } | null | undefined };
+
+export type PostQueryVariables = Exact<{
+  postId: Scalars['Int'];
+}>;
+
+
+export type PostQuery = { __typename?: 'Query', post: { __typename: 'BaseError', message: string } | { __typename: 'NotFoundError', fieldName: string, message: string } | { __typename: 'QueryPostSuccess', data: { __typename?: 'Post', id: string, title: string, content?: string | null | undefined, points: number, author: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } } } };
 
 export type PostsQueryVariables = Exact<{
   limit: Scalars['Int'];
@@ -633,6 +640,7 @@ export const VoteDocument = gql`
       data
     }
     ... on NotFoundError {
+      fieldName
       message
     }
     ... on Error {
@@ -702,6 +710,61 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const PostDocument = gql`
+    query post($postId: Int!) {
+  post(id: $postId) {
+    __typename
+    ... on QueryPostSuccess {
+      data {
+        author {
+          id
+          name
+          email
+        }
+        id
+        title
+        content
+        points
+      }
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
+    `;
+
+/**
+ * __usePostQuery__
+ *
+ * To run a query within a React component, call `usePostQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePostQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePostQuery({
+ *   variables: {
+ *      postId: // value for 'postId'
+ *   },
+ * });
+ */
+export function usePostQuery(baseOptions: Apollo.QueryHookOptions<PostQuery, PostQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PostQuery, PostQueryVariables>(PostDocument, options);
+      }
+export function usePostLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PostQuery, PostQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PostQuery, PostQueryVariables>(PostDocument, options);
+        }
+export type PostQueryHookResult = ReturnType<typeof usePostQuery>;
+export type PostLazyQueryHookResult = ReturnType<typeof usePostLazyQuery>;
+export type PostQueryResult = Apollo.QueryResult<PostQuery, PostQueryVariables>;
 export const PostsDocument = gql`
     query posts($limit: Int!, $cursor: ID) {
   posts(limit: $limit, cursor: $cursor) {
