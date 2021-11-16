@@ -12,6 +12,12 @@ query posts($limit: Int!, $cursor: ID) {
         id
         title
         content
+        author {
+          id
+          email
+          name
+        }
+        points
       }
     }
   }

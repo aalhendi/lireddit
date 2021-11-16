@@ -75,6 +75,13 @@ type Mutation {
     """Title"""
     title: String
   ): Post!
+  vote(
+    """Post ID"""
+    postId: Int!
+
+    """Upvote(True) or Downvote(False)"""
+    value: Boolean!
+  ): MutationVoteResult!
 }
 
 union MutationChangePasswordResult = MutationChangePasswordSuccess | NotFoundError | ZodError
@@ -113,14 +120,22 @@ type MutationRegisterSuccess {
   data: User!
 }
 
+union MutationVoteResult = BaseError | MutationVoteSuccess | NotFoundError
+
+type MutationVoteSuccess {
+  data: Boolean!
+}
+
 type NotFoundError implements Error {
   fieldName: String!
   message: String!
 }
 
 type Post {
+  author: User!
   content: String
   id: ID!
+  points: Int!
   title: String!
 }
 

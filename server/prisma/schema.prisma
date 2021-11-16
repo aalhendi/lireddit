@@ -38,15 +38,11 @@ model Post {
   updatedAt DateTime       @updatedAt
   title     String         @db.VarChar(255)
   content   String?
-  points    UsersOnPosts[]
+  points    Int            @default(0)
+  votes     UsersOnPosts[]
   published Boolean        @default(false)
   author    User           @relation(fields: [authorId], references: [id])
   authorId  Int
-}
-
-model Votes {
-  id    Int @id @default(autoincrement())
-  value Int
 }
 
 model UsersOnPosts {

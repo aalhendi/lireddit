@@ -51,6 +51,7 @@ export type Mutation = {
   logout: Scalars['Boolean'];
   register: MutationRegisterResult;
   updatePost: Post;
+  vote: MutationVoteResult;
 };
 
 
@@ -96,6 +97,12 @@ export type MutationUpdatePostArgs = {
   title?: Maybe<Scalars['String']>;
 };
 
+
+export type MutationVoteArgs = {
+  postId: Scalars['Int'];
+  value: Scalars['Boolean'];
+};
+
 export type MutationChangePasswordResult = MutationChangePasswordSuccess | NotFoundError | ZodError;
 
 export type MutationChangePasswordSuccess = {
@@ -138,6 +145,13 @@ export type MutationRegisterSuccess = {
   data: User;
 };
 
+export type MutationVoteResult = BaseError | MutationVoteSuccess | NotFoundError;
+
+export type MutationVoteSuccess = {
+  __typename?: 'MutationVoteSuccess';
+  data: Scalars['Boolean'];
+};
+
 export type NotFoundError = Error & {
   __typename?: 'NotFoundError';
   fieldName: Scalars['String'];
@@ -146,8 +160,10 @@ export type NotFoundError = Error & {
 
 export type Post = {
   __typename?: 'Post';
+  author: User;
   content?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
+  points: Scalars['Int'];
   title: Scalars['String'];
 };
 
@@ -261,6 +277,14 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'AlreadyExistsError', fieldName: string, message: string } | { __typename?: 'MutationRegisterSuccess', data: { __typename?: 'User', id: string, name?: string | null | undefined, email: string } } | { __typename?: 'ZodError', fieldErrors: Array<{ __typename?: 'ZodFieldError', message: string, path: Array<string> }> } };
 
+export type VoteMutationVariables = Exact<{
+  postId: Scalars['Int'];
+  value: Scalars['Boolean'];
+}>;
+
+
+export type VoteMutation = { __typename?: 'Mutation', vote: { __typename: 'BaseError', message: string } | { __typename: 'MutationVoteSuccess', data: boolean } | { __typename: 'NotFoundError', message: string } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -272,7 +296,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename: 'BaseError', message: string } | { __typename: 'QueryPostsSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined }> } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename: 'BaseError', message: string } | { __typename: 'QueryPostsSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined, points: number, author: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } }> } };
 
 export const NormalUserFragmentDoc = gql`
     fragment NormalUser on User {
@@ -601,6 +625,49 @@ export function useRegisterMutation(baseOptions?: Apollo.MutationHookOptions<Reg
 export type RegisterMutationHookResult = ReturnType<typeof useRegisterMutation>;
 export type RegisterMutationResult = Apollo.MutationResult<RegisterMutation>;
 export type RegisterMutationOptions = Apollo.BaseMutationOptions<RegisterMutation, RegisterMutationVariables>;
+export const VoteDocument = gql`
+    mutation vote($postId: Int!, $value: Boolean!) {
+  vote(postId: $postId, value: $value) {
+    __typename
+    ... on MutationVoteSuccess {
+      data
+    }
+    ... on NotFoundError {
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
+    `;
+export type VoteMutationFn = Apollo.MutationFunction<VoteMutation, VoteMutationVariables>;
+
+/**
+ * __useVoteMutation__
+ *
+ * To run a mutation, you first call `useVoteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVoteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [voteMutation, { data, loading, error }] = useVoteMutation({
+ *   variables: {
+ *      postId: // value for 'postId'
+ *      value: // value for 'value'
+ *   },
+ * });
+ */
+export function useVoteMutation(baseOptions?: Apollo.MutationHookOptions<VoteMutation, VoteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<VoteMutation, VoteMutationVariables>(VoteDocument, options);
+      }
+export type VoteMutationHookResult = ReturnType<typeof useVoteMutation>;
+export type VoteMutationResult = Apollo.MutationResult<VoteMutation>;
+export type VoteMutationOptions = Apollo.BaseMutationOptions<VoteMutation, VoteMutationVariables>;
 export const MeDocument = gql`
     query me {
   me {
@@ -650,6 +717,12 @@ export const PostsDocument = gql`
         id
         title
         content
+        author {
+          id
+          email
+          name
+        }
+        points
       }
     }
   }

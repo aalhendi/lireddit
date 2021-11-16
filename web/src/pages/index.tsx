@@ -6,12 +6,21 @@ import {
 } from "@chakra-ui/alert";
 import { Button } from "@chakra-ui/button";
 import { CloseButton } from "@chakra-ui/close-button";
-import { Box, Center, Heading, Link, Stack, Text } from "@chakra-ui/layout";
+import {
+  Box,
+  Center,
+  Flex,
+  Heading,
+  Link,
+  Stack,
+  Text,
+} from "@chakra-ui/layout";
 import { Spinner } from "@chakra-ui/spinner";
 import type { NextPage } from "next";
 import NextLink from "next/link";
 import React from "react";
 import { usePostsQuery } from "../generated/graphql";
+import { SideVotes } from "./components/SideVotes";
 
 const Home: NextPage = () => {
   const [error, setError] = React.useState<string | null>(null);
@@ -69,11 +78,17 @@ const Home: NextPage = () => {
             {data?.posts.__typename === "QueryPostsSuccess"
               ? data.posts.data.map((p) => (
                   <>
-                    <Box p={5} shadow="md" borderWidth="1px">
-                      <Heading fontSize="xl">{p.title}</Heading>
-                      {/* TODO: Field resolver in backend to return textSnippet instead of loading all text and splicing on front end */}
-                      <Text mt={4}>{p.content?.slice(0, 50)}</Text>
-                    </Box>
+                    <Flex p={5} shadow="md" borderWidth="1px">
+                      <SideVotes post={p} />
+                      {/* TODO: Refactor into component */}
+                      <Box>
+                        <Heading fontSize="xl">{p.title}</Heading>
+                        {/* TODO: Add username and make this username */}
+                        <Text>By: {p.author.email}</Text>
+                        {/* TODO: Field resolver in backend to return textSnippet instead of loading all text and splicing on front end */}
+                        <Text mt={4}>{p.content?.slice(0, 50)}</Text>
+                      </Box>
+                    </Flex>
                   </>
                 ))
               : null}

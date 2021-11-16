@@ -13,15 +13,11 @@ Table Post {
   updatedAt DateTime [not null]
   title String [not null]
   content String
-  points UsersOnPosts [not null]
+  points Int [not null, default: 0]
+  votes UsersOnPosts [not null]
   published Boolean [not null, default: false]
   author User [not null]
   authorId Int [not null]
-}
-
-Table Votes {
-  id Int [pk, increment]
-  value Int [not null]
 }
 
 Table UsersOnPosts {

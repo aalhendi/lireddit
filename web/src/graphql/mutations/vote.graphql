@@ -1,0 +1,14 @@
+mutation vote($postId: Int!, $value: Boolean!) {
+  vote(postId: $postId, value: $value) {
+    __typename
+    ... on MutationVoteSuccess {
+      data
+    }
+    ... on NotFoundError {
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}
