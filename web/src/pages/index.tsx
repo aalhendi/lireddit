@@ -62,11 +62,6 @@ const Home: NextPage = () => {
           <CloseButton position="absolute" right="8px" top="8px" />
         </Alert>
       )}
-      <Center>
-        <Link as={NextLink} href={"/create-post"} passHref>
-          <Text fontWeight={"bold"}>Create Post</Text>
-        </Link>
-      </Center>
 
       <Box>
         {postsLoading && !data ? (

@@ -1,6 +1,8 @@
 import { useApolloClient } from "@apollo/client";
 import { Button } from "@chakra-ui/button";
+import { AddIcon } from "@chakra-ui/icons";
 import { Box, Flex, Heading, Link, Text } from "@chakra-ui/layout";
+import { IconButton } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
@@ -74,7 +76,14 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
           </Link>
         </Heading>
       </Box>
-      <Box ml={"auto"}>{links}</Box>
+      <Box ml={"auto"}>
+        <Flex align={"center"}>
+          <Link as={NextLink} href={"/create-post"} passHref>
+            <IconButton aria-label={"Create Post"} icon={<AddIcon />} mr={4} />
+          </Link>
+          {links}
+        </Flex>
+      </Box>
     </Flex>
   );
 };
