@@ -400,7 +400,7 @@ builder.mutationType({
     deletePost: t.prismaField({
       type: "Post",
       errors: {
-        types: [NotFoundError],
+        types: [Error, NotFoundError, UnauthorizedError],
       },
       args: {
         id: t.arg({
@@ -409,20 +409,25 @@ builder.mutationType({
           description: "ID",
         }),
       },
-      resolve: async (_query, _root, args, _ctx, _info) => {
+      authScopes: {
+        isLoggedIn: true,
+      },
+      resolve: async (_query, _root, args, ctx, _info) => {
         const foundPost = await prisma.post.findUnique({
           where: {
             id: args.id,
           },
         });
-        if (foundPost) {
+        if (!foundPost) {
+          throw new NotFoundError("post");
+        } else if (foundPost.authorId === ctx.req.session.userId) {
           return await prisma.post.delete({
             where: {
               id: args.id,
             },
           });
         } else {
-          throw new NotFoundError("id");
+          throw new UnauthorizedError();
         }
       },
     }),

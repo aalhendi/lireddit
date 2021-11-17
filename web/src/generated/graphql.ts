@@ -117,7 +117,7 @@ export type MutationCreatePostSuccess = {
   data: Post;
 };
 
-export type MutationDeletePostResult = MutationDeletePostSuccess | NotFoundError;
+export type MutationDeletePostResult = BaseError | MutationDeletePostSuccess | NotFoundError | UnauthorizedError;
 
 export type MutationDeletePostSuccess = {
   __typename?: 'MutationDeletePostSuccess';
@@ -246,7 +246,7 @@ export type DeletePostMutationVariables = Exact<{
 }>;
 
 
-export type DeletePostMutation = { __typename?: 'Mutation', deletePost: { __typename?: 'MutationDeletePostSuccess', data: { __typename?: 'Post', id: string, title: string, content?: string | null | undefined } } | { __typename?: 'NotFoundError', fieldName: string, message: string } };
+export type DeletePostMutation = { __typename?: 'Mutation', deletePost: { __typename?: 'BaseError', message: string } | { __typename?: 'MutationDeletePostSuccess', data: { __typename?: 'Post', id: string, title: string, content?: string | null | undefined } } | { __typename?: 'NotFoundError', fieldName: string, message: string } | { __typename?: 'UnauthorizedError', message: string } };
 
 export type ForgotPasswordMutationVariables = Exact<{
   email: Scalars['String'];
@@ -425,6 +425,9 @@ export const DeletePostDocument = gql`
     }
     ... on NotFoundError {
       fieldName
+      message
+    }
+    ... on UnauthorizedError {
       message
     }
     ... on Error {

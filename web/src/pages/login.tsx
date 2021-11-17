@@ -32,6 +32,7 @@ const Login: NextPage<loginProps> = ({}) => {
                   },
                 });
                 cache.evict({ fieldName: "posts:{}" });
+                cache.gc();
               }
             },
           });

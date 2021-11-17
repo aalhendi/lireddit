@@ -51,7 +51,7 @@ Table User {
 
 Ref: Post.authorId > User.id
 
-Ref: UsersOnPosts.postId > Post.id
+Ref: UsersOnPosts.postId > Post.id [delete: Cascade]
 
 Ref: UsersOnPosts.userId > User.id
 

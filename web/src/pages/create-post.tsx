@@ -43,6 +43,7 @@ const CreatePost: NextPage<createPostProps> = ({}) => {
               update: (cache) => {
                 /* Evicts all posts so we fetch a fresh set */
                 cache.evict({ fieldName: "posts:{}" });
+                cache.gc();
               },
             });
             if (

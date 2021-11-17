@@ -96,7 +96,7 @@ type MutationCreatePostSuccess {
   data: Post!
 }
 
-union MutationDeletePostResult = MutationDeletePostSuccess | NotFoundError
+union MutationDeletePostResult = BaseError | MutationDeletePostSuccess | NotFoundError | UnauthorizedError
 
 type MutationDeletePostSuccess {
   data: Post!

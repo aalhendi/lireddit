@@ -11,6 +11,9 @@ mutation deletePost($postId: Int!) {
       fieldName
       message
     }
+    ... on UnauthorizedError {
+      message
+    }
     ... on Error {
       message
     }
