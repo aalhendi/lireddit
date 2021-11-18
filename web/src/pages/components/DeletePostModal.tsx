@@ -29,28 +29,24 @@ const DeletePostModal: React.FC<DeletePostModalProps> = ({
   setError,
   setAlertStatus,
 }) => {
-  const [deletePost, { data, loading }] = useDeletePostMutation();
+  const [deletePost, { loading, data }] = useDeletePostMutation();
   const confirmDelete = async (postId: number) => {
     await deletePost({
       variables: {
         postId: postId,
       },
       update: (cache) => {
-        // TODO: Fix error. data comes back undefined?
         if (data?.deletePost.__typename === "MutationDeletePostSuccess") {
           cache.evict({ id: `Post:${postId}` });
           cache.gc();
+          setAlertStatus("success");
+          setError("Successfully deleted post");
+        } else {
+          setAlertStatus("error");
+          setError("Could not delete post");
         }
       },
     });
-    // console.log(data);
-    if (data?.deletePost.__typename === "MutationDeletePostSuccess") {
-      setAlertStatus("success");
-      setError("Successfully deleted post");
-    } else {
-      setAlertStatus("error");
-      setError("Could not delete post");
-    }
 
     if (!loading) {
       onClose();
@@ -69,8 +65,8 @@ const DeletePostModal: React.FC<DeletePostModalProps> = ({
           <Button
             colorScheme="red"
             mr={3}
-            onClick={() => {
-              confirmDelete(postId);
+            onClick={async () => {
+              await confirmDelete(postId);
               onClose;
             }}
             isLoading={loading}

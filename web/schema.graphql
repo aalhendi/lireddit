@@ -99,7 +99,7 @@ type MutationCreatePostSuccess {
 union MutationDeletePostResult = BaseError | MutationDeletePostSuccess | NotFoundError | UnauthorizedError
 
 type MutationDeletePostSuccess {
-  data: Post!
+  data: Boolean!
 }
 
 union MutationForgotPasswordResult = MutationForgotPasswordSuccess | ZodError

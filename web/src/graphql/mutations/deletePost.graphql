@@ -1,11 +1,7 @@
 mutation deletePost($postId: Int!) {
   deletePost(id: $postId) {
     ... on MutationDeletePostSuccess {
-      data {
-        id
-        title
-        content
-      }
+      data
     }
     ... on NotFoundError {
       fieldName
