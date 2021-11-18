@@ -40,7 +40,7 @@ const DeletePostModal: React.FC<DeletePostModalProps> = ({
           cache.evict({ id: `Post:${postId}` });
           cache.gc();
           setAlertStatus("success");
-          setError("Successfully deleted post");
+          setError("Post was deleted");
         } else {
           setAlertStatus("error");
           setError("Could not delete post");
