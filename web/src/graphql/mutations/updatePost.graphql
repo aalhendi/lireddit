@@ -1,0 +1,22 @@
+mutation updatePost($title: String!, $content: String, $postId: Int!) {
+  updatePost(postId: $postId, title: $title, content: $content) {
+    ... on MutationUpdatePostSuccess {
+      data {
+        id
+        title
+        content
+        points
+      }
+    }
+    ... on UnauthorizedError {
+      message
+    }
+    ... on NotFoundError {
+      fieldName
+      message
+    }
+    ... on Error {
+      message
+    }
+  }
+}

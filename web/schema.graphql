@@ -63,18 +63,15 @@ type Mutation {
     password: String!
   ): MutationRegisterResult!
   updatePost(
-    """Author ID"""
-    authorId: Int
-
     """Content"""
     content: String
 
     """ID"""
-    id: Int!
+    postId: Int!
 
     """Title"""
-    title: String
-  ): Post!
+    title: String!
+  ): MutationUpdatePostResult!
   vote(
     """Post ID"""
     postId: Int!
@@ -118,6 +115,12 @@ union MutationRegisterResult = AlreadyExistsError | MutationRegisterSuccess | Zo
 
 type MutationRegisterSuccess {
   data: User!
+}
+
+union MutationUpdatePostResult = BaseError | MutationUpdatePostSuccess | NotFoundError | UnauthorizedError
+
+type MutationUpdatePostSuccess {
+  data: Post!
 }
 
 union MutationVoteResult = BaseError | MutationVoteSuccess | NotFoundError

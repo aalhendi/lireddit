@@ -21,12 +21,14 @@ import { IconButton } from "@chakra-ui/react";
 import { Spinner } from "@chakra-ui/spinner";
 import type { NextPage } from "next";
 import NextLink from "next/link";
+import router from "next/router";
 import React from "react";
-import { usePostsQuery } from "../generated/graphql";
+import { useMeQuery, usePostsQuery } from "../generated/graphql";
 import DeletePostModal from "./components/DeletePostModal";
 import { SideVotes } from "./components/SideVotes";
 
 const Home: NextPage = () => {
+  const { data: meData, loading } = useMeQuery();
   const [error, setError] = React.useState<string | null>(null);
   const [alertStatus, setAlertStatus] = React.useState<
     "error" | "info" | "warning" | "success" | undefined
@@ -97,22 +99,27 @@ const Home: NextPage = () => {
                               {p.title}
                             </Heading>
                           </Link>
-                          <Box ml={"auto"}>
-                            <IconButton
-                              aria-label={"Edit Post"}
-                              _hover={{ bgColor: "blue.200" }}
-                              mx={1}
-                              icon={<EditIcon />}
-                            />
-                            <IconButton
-                              aria-label={"Delete Post"}
-                              bgColor={"red.500"}
-                              _hover={{ bgColor: "red" }}
-                              mx={1}
-                              onClick={onOpen}
-                              icon={<DeleteIcon color={"white"} />}
-                            />
-                          </Box>
+                          {meData?.me?.id === p.author.id && (
+                            <Box ml={"auto"}>
+                              <IconButton
+                                aria-label={"Edit Post"}
+                                _hover={{ bgColor: "blue.200" }}
+                                mx={1}
+                                icon={<EditIcon />}
+                                onClick={async () =>
+                                  await router.push(`/post/edit/${p.id}`)
+                                }
+                              />
+                              <IconButton
+                                aria-label={"Delete Post"}
+                                bgColor={"red.500"}
+                                _hover={{ bgColor: "red" }}
+                                mx={1}
+                                onClick={onOpen}
+                                icon={<DeleteIcon color={"white"} />}
+                              />
+                            </Box>
+                          )}
                         </Flex>
                         {/* TODO: Add username and make this username */}
                         <Text>By: {p.author.email}</Text>
