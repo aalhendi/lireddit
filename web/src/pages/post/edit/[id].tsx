@@ -22,6 +22,7 @@ import Wrapper from "../../components/Wrapper";
 interface EditPostProps {}
 
 const EditPost: NextPage<EditPostProps> = ({}) => {
+  // TODO: Convert to util Hook
   const router = useRouter();
   /* Check if query param is valid, if not don't bother sending request to server */
   const postId =
