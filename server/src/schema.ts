@@ -1,187 +1,23 @@
-import SchemaBuilder, {
-  InputFieldRef,
-  InputShapeFromFields,
-} from "@giraphql/core";
-import ErrorsPlugin from "@giraphql/plugin-errors";
-import PrismaPlugin from "@giraphql/plugin-prisma";
-import SimpleObjectsPlugin from "@giraphql/plugin-simple-objects";
-import PrismaTypes from "@giraphql/plugin-prisma/generated"; // default generator location, can be changed in schema
-import ScopeAuthPlugin from "@giraphql/plugin-scope-auth";
-import ValidationPlugin from "@giraphql/plugin-validation";
+import { InputFieldRef, InputShapeFromFields } from "@giraphql/core";
 import { PrismaClient } from "@prisma/client";
 import argon2 from "argon2";
-import express from "express";
 import { v4 as uuidv4 } from "uuid";
 import { ZodError } from "zod";
+import { builder } from "./builder";
 import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "./constants";
-import { redis } from "./redis";
-import { sendEmail } from "./utils/sendEmail";
-import { flattenErrors } from "./utils/flattenErrors";
 import {
   AlreadyExistsError,
   InvalidCredentialsError,
-  LengthError,
   NotFoundError,
   UnauthorizedError,
 } from "./objects";
+import { redis } from "./redis";
+import { sendEmail } from "./utils/sendEmail";
 
 const prisma = new PrismaClient({});
 
 // TODO: Refactor
 // TODO: Backend permission conditional. Post owner can see own email but others shouldnt be able to
-
-class User {
-  userId: string;
-  firstName: string;
-  username: string;
-  constructor(id: string, firstName: string, username: string) {
-    this.userId = id;
-    this.firstName = firstName;
-    this.username = username;
-  }
-}
-
-export const builder = new SchemaBuilder<{
-  PrismaTypes: PrismaTypes;
-  Context: {
-    currentUser: User;
-    req: express.Request;
-    res: express.Response;
-  };
-  // Types used for scope parameters
-  AuthScopes: {
-    isLoggedIn: boolean;
-  };
-}>({
-  plugins: [
-    ErrorsPlugin,
-    ScopeAuthPlugin,
-    ValidationPlugin,
-    PrismaPlugin,
-    SimpleObjectsPlugin,
-  ],
-  prisma: {
-    client: prisma,
-  },
-  // scope initializer, create the scopes and scope loaders for each request
-  authScopes: async (context) => ({
-    isLoggedIn: !!context.req.session.userId,
-  }),
-});
-
-const ErrorInterface = builder.interfaceRef<Error>("Error").implement({
-  fields: (t) => ({
-    message: t.exposeString("message"),
-  }),
-});
-
-builder.objectType(Error, {
-  name: "BaseError",
-  isTypeOf: (obj) => obj instanceof Error,
-  interfaces: [ErrorInterface],
-});
-
-builder.objectType(LengthError, {
-  name: "LengthError",
-  interfaces: [ErrorInterface],
-  isTypeOf: (obj) => obj instanceof LengthError,
-  fields: (t) => ({
-    minLength: t.exposeInt("minLength"),
-    fieldName: t.exposeString("fieldName"),
-  }),
-});
-
-builder.objectType(NotFoundError, {
-  name: "NotFoundError",
-  interfaces: [ErrorInterface],
-  isTypeOf: (obj) => obj instanceof NotFoundError,
-  fields: (t) => ({
-    fieldName: t.exposeString("fieldName"),
-  }),
-});
-
-builder.objectType(InvalidCredentialsError, {
-  name: "InvalidCredentialsError",
-  interfaces: [ErrorInterface],
-  isTypeOf: (obj) => obj instanceof InvalidCredentialsError,
-});
-
-builder.objectType(AlreadyExistsError, {
-  name: "AlreadyExistsError",
-  interfaces: [ErrorInterface],
-  isTypeOf: (obj) => obj instanceof AlreadyExistsError,
-  fields: (t) => ({
-    fieldName: t.exposeString("fieldName"),
-  }),
-});
-
-builder.objectType(UnauthorizedError, {
-  name: "UnauthorizedError",
-  interfaces: [ErrorInterface],
-  isTypeOf: (obj) => obj instanceof UnauthorizedError,
-});
-
-// A type for the individual validation issues
-const ZodFieldError = builder
-  .objectRef<{
-    message: string;
-    path: string[];
-  }>("ZodFieldError")
-  .implement({
-    fields: (t) => ({
-      message: t.exposeString("message"),
-      path: t.exposeStringList("path"),
-    }),
-  });
-// The actual error type
-builder.objectType(ZodError, {
-  name: "ZodError",
-  interfaces: [ErrorInterface],
-  isTypeOf: (obj) => obj instanceof ZodError,
-  fields: (t) => ({
-    fieldErrors: t.field({
-      type: [ZodFieldError],
-      resolve: (err) => flattenErrors(err.format(), []),
-    }),
-  }),
-});
-
-builder.prismaObject("User", {
-  name: "User", // Optional, default = prisma model
-  findUnique: null,
-  fields: (t) => ({
-    id: t.exposeID("id"),
-    email: t.exposeString("email"),
-    name: t.exposeString("name", { nullable: true }),
-  }),
-});
-
-// builder.prismaObject("UsersOnPosts", {
-//   name: "UsersOnPosts", // Optional, default = prisma model
-//   findUnique: null,
-//   fields: (t) => ({
-//     postId: t.exposeID("postId"),
-//     userId: t.exposeID("userId"),
-//   }),
-// });
-
-builder.prismaObject("Post", {
-  findUnique: null,
-  fields: (t) => ({
-    id: t.exposeID("id"),
-    title: t.exposeString("title"),
-    content: t.exposeString("content", { nullable: true }),
-    points: t.exposeInt("points"),
-    author: t.relation("author", {
-      resolve: (query, post) =>
-        prisma.user.findUnique({
-          ...query,
-          rejectOnNotFound: true,
-          where: { id: post.authorId },
-        }),
-    }),
-  }),
-});
 
 builder.queryField("post", (t) => {
   return t.prismaField({
