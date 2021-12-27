@@ -164,6 +164,25 @@ export type NotFoundError = Error & {
   message: Scalars['String'];
 };
 
+export type PaginatedPosts = {
+  __typename?: 'PaginatedPosts';
+  data: PaginatedPostsDataResult;
+  hasMore: Scalars['Boolean'];
+};
+
+
+export type PaginatedPostsDataArgs = {
+  cursor?: Maybe<Scalars['ID']>;
+  limit: Scalars['Int'];
+};
+
+export type PaginatedPostsDataResult = BaseError | PaginatedPostsDataSuccess;
+
+export type PaginatedPostsDataSuccess = {
+  __typename?: 'PaginatedPostsDataSuccess';
+  data: Array<Post>;
+};
+
 export type Post = {
   __typename?: 'Post';
   author: User;
@@ -176,8 +195,9 @@ export type Post = {
 export type Query = {
   __typename?: 'Query';
   me?: Maybe<User>;
+  ping: Scalars['String'];
   post: QueryPostResult;
-  posts: QueryPostsResult;
+  posts: PaginatedPosts;
 };
 
 
@@ -196,13 +216,6 @@ export type QueryPostResult = BaseError | NotFoundError | QueryPostSuccess;
 export type QueryPostSuccess = {
   __typename?: 'QueryPostSuccess';
   data: Post;
-};
-
-export type QueryPostsResult = BaseError | QueryPostsSuccess;
-
-export type QueryPostsSuccess = {
-  __typename?: 'QueryPostsSuccess';
-  data: Array<Post>;
 };
 
 export type UnauthorizedError = Error & {
@@ -318,7 +331,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename: 'BaseError', message: string } | { __typename: 'QueryPostsSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined, points: number, author: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } }> } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, data: { __typename: 'BaseError', message: string } | { __typename: 'PaginatedPostsDataSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined, points: number, author: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } }> } } };
 
 export const NormalUserFragmentDoc = gql`
     fragment NormalUser on User {
@@ -834,26 +847,29 @@ export type PostQueryResult = Apollo.QueryResult<PostQuery, PostQueryVariables>;
 export const PostsDocument = gql`
     query posts($limit: Int!, $cursor: ID) {
   posts(limit: $limit, cursor: $cursor) {
-    __typename
-    ... on Error {
-      message
-    }
-    ... on BaseError {
-      message
-    }
-    ... on QueryPostsSuccess {
-      data {
-        id
-        title
-        content
-        author {
+    data(limit: $limit) {
+      __typename
+      ... on PaginatedPostsDataSuccess {
+        data {
           id
-          email
-          name
+          title
+          content
+          author {
+            id
+            email
+            name
+          }
+          points
         }
-        points
+      }
+      ... on Error {
+        message
+      }
+      ... on BaseError {
+        message
       }
     }
+    hasMore
   }
 }
     `;

@@ -49,17 +49,17 @@ const Home: NextPage = () => {
   });
 
   const loadMore = () => {
-    if (data?.posts.__typename === "QueryPostsSuccess") {
+    if (data?.posts.data.__typename === "PaginatedPostsDataSuccess") {
       fetchMore({
         variables: {
           limit: variables?.limit,
-          cursor: data.posts.data[data.posts.data.length - 1].id,
+          cursor: data.posts.data.data[data.posts.data.data.length - 1].id,
         },
       });
     }
   };
 
-  if (data?.posts.__typename === "BaseError") {
+  if (data?.posts.data.__typename === "BaseError") {
     setAlertStatus("error");
     setError("Could not fetch posts");
   }
@@ -82,8 +82,8 @@ const Home: NextPage = () => {
           </Center>
         ) : (
           <Stack spacing={8}>
-            {data?.posts.__typename === "QueryPostsSuccess"
-              ? data.posts.data.map((p) => (
+            {data?.posts.data.__typename === "PaginatedPostsDataSuccess"
+              ? data.posts.data.data.map((p) => (
                   <>
                     <Flex p={5} shadow="md" borderWidth="1px">
                       <SideVotes post={p} />
@@ -139,15 +139,15 @@ const Home: NextPage = () => {
                   </>
                 ))
               : null}
+            <Center>
+              {data?.posts.hasMore ? (
+                <Button my={4} onClick={loadMore} isLoading={postsLoading}>
+                  Load More
+                </Button>
+              ) : null}
+            </Center>
           </Stack>
         )}
-        <Center>
-          {data ? (
-            <Button my={4} onClick={loadMore} isLoading={postsLoading}>
-              Load More
-            </Button>
-          ) : null}
-        </Center>
       </Box>
     </>
   );

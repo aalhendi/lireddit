@@ -1,24 +1,27 @@
 query posts($limit: Int!, $cursor: ID) {
   posts(limit: $limit, cursor: $cursor) {
-    __typename
-    ... on Error {
-      message
-    }
-    ... on BaseError {
-      message
-    }
-    ... on QueryPostsSuccess {
-      data {
-        id
-        title
-        content
-        author {
+    data(limit: $limit) {
+      __typename
+      ... on PaginatedPostsDataSuccess {
+        data {
           id
-          email
-          name
+          title
+          content
+          author {
+            id
+            email
+            name
+          }
+          points
         }
-        points
+      }
+      ... on Error {
+        message
+      }
+      ... on BaseError {
+        message
       }
     }
+    hasMore
   }
 }

@@ -1,4 +1,7 @@
-import SchemaBuilder from "@giraphql/core";
+import SchemaBuilder, {
+  InputFieldRef,
+  InputShapeFromFields,
+} from "@giraphql/core";
 import ErrorsPlugin from "@giraphql/plugin-errors";
 import PrismaPlugin from "@giraphql/plugin-prisma";
 import SimpleObjectsPlugin from "@giraphql/plugin-simple-objects";
@@ -210,14 +213,72 @@ builder.queryField("post", (t) => {
   });
 });
 
+const fetchPosts = async (
+  args: InputShapeFromFields<{
+    cursor: InputFieldRef<string | number | null | undefined, "Arg">;
+    limit: InputFieldRef<number, "Arg">;
+  }>
+) => {
+  args.limit = Math.min(50, args.limit); // Pull user limit or 50 as hard-cap
+  if (args.cursor) {
+    const secondQuery = await prisma.post.findMany({
+      orderBy: { createdAt: "asc" },
+      take: args.limit + 1, // Take one extra to check if more exist
+      skip: 1, // Skip the cursor
+      cursor: {
+        id:
+          typeof args.cursor === "string" ? parseInt(args.cursor) : args.cursor,
+      },
+    });
+    return {
+      hasMore: secondQuery.length === args.limit + 1,
+      data: secondQuery.slice(0, args.limit),
+    };
+  }
+  const firstQuery = await prisma.post.findMany({
+    orderBy: { createdAt: "asc" },
+    take: args.limit + 1,
+  });
+  return {
+    hasMore: firstQuery.length === args.limit + 1,
+    data: firstQuery.slice(0, args.limit),
+  };
+};
+
+const PaginatedPosts = builder.simpleObject("PaginatedPosts", {
+  fields: (t) => ({
+    hasMore: t.boolean({
+      nullable: false,
+    }),
+    data: t.prismaField({
+      // TODO: Add Snippet field in return instead of showing all of the content
+      type: ["Post"],
+      errors: {
+        types: [Error],
+      },
+      args: {
+        cursor: t.arg({
+          type: "ID",
+          description: "Pointer to start from",
+          required: false,
+        }),
+        limit: t.arg({
+          type: "Int",
+          description: "Number of posts to fetch",
+          required: true,
+        }),
+      },
+      resolve: async (_query, _root, args, _ctx, _info) => {
+        const result = await fetchPosts(args);
+        return result.data;
+      },
+    }),
+  }),
+});
+
 builder.queryField("posts", (t) => {
-  return t.prismaField({
-    // TODO: Add Snippet field in return instead of showing all of the content
-    // TODO: hasMore boolean to see if we have already fetched all data
-    type: ["Post"],
-    errors: {
-      types: [Error],
-    },
+  return t.field({
+    type: PaginatedPosts,
     args: {
       cursor: t.arg({
         type: "ID",
@@ -230,26 +291,8 @@ builder.queryField("posts", (t) => {
         required: true,
       }),
     },
-    resolve: async (_query, _root, args, _ctx, _info) => {
-      if (args.cursor) {
-        const secondQuery = await prisma.post.findMany({
-          orderBy: { createdAt: "asc" },
-          take: Math.min(50, args.limit), // Pull user limit or 50 as hard-cap
-          skip: 1, // Skip the cursor
-          cursor: {
-            id:
-              typeof args.cursor === "string"
-                ? parseInt(args.cursor)
-                : args.cursor,
-          },
-        });
-        return secondQuery;
-      }
-      const firstQuery = await prisma.post.findMany({
-        orderBy: { createdAt: "asc" },
-        take: args.limit,
-      });
-      return firstQuery;
+    resolve: async (_root, args, _ctx, _info) => {
+      return await fetchPosts(args);
     },
   });
 });

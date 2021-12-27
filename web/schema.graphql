@@ -134,6 +134,23 @@ type NotFoundError implements Error {
   message: String!
 }
 
+type PaginatedPosts {
+  data(
+    """Pointer to start from"""
+    cursor: ID
+
+    """Number of posts to fetch"""
+    limit: Int!
+  ): PaginatedPostsDataResult!
+  hasMore: Boolean!
+}
+
+union PaginatedPostsDataResult = BaseError | PaginatedPostsDataSuccess
+
+type PaginatedPostsDataSuccess {
+  data: [Post!]!
+}
+
 type Post {
   author: User!
   content: String
@@ -144,6 +161,7 @@ type Post {
 
 type Query {
   me: User
+  ping: String!
   post(
     """ID"""
     id: Int!
@@ -154,19 +172,13 @@ type Query {
 
     """Number of posts to fetch"""
     limit: Int!
-  ): QueryPostsResult!
+  ): PaginatedPosts!
 }
 
 union QueryPostResult = BaseError | NotFoundError | QueryPostSuccess
 
 type QueryPostSuccess {
   data: Post!
-}
-
-union QueryPostsResult = BaseError | QueryPostsSuccess
-
-type QueryPostsSuccess {
-  data: [Post!]!
 }
 
 type UnauthorizedError implements Error {
