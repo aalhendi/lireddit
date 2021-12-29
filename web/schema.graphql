@@ -156,6 +156,7 @@ type Post {
   content: String
   id: ID!
   points: Int!
+  snippet: String
   title: String!
 }
 

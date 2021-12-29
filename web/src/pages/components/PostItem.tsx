@@ -67,8 +67,7 @@ export const PostItem: React.FC<PostItemProps> = ({
           </Flex>
           {/* TODO: Add username and make this username */}
           <Text>By: {post.author.email}</Text>
-          {/* TODO: Field resolver in backend to return textSnippet instead of loading all text and splicing on front end */}
-          <Text mt={4}>{post.content?.slice(0, 50)}</Text>
+          <Text mt={4}>{post.snippet}</Text>
         </Box>
       </Flex>
       {/* // CHECK: Is rendering modal like this even good? Or is it rendering n modals all not shown? */}

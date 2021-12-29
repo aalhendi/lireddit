@@ -30,6 +30,12 @@ export const PostObject = builder.prismaObject("Post", {
     id: t.exposeID("id"),
     title: t.exposeString("title"),
     content: t.exposeString("content", { nullable: true }),
+    snippet: t.string({
+      nullable: true,
+      resolve: (root, _args, _ctx, _info) => {
+        return root.content?.slice(0, 50);
+      },
+    }),
     points: t.exposeInt("points"),
     author: t.relation("author", {
       resolve: async (_query, post) => {

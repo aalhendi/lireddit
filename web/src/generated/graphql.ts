@@ -189,6 +189,7 @@ export type Post = {
   content?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
   points: Scalars['Int'];
+  snippet?: Maybe<Scalars['String']>;
   title: Scalars['String'];
 };
 
@@ -331,7 +332,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, data: { __typename: 'BaseError', message: string } | { __typename: 'PaginatedPostsDataSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, content?: string | null | undefined, points: number, author: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } }> } } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, data: { __typename: 'BaseError', message: string } | { __typename: 'PaginatedPostsDataSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, snippet?: string | null | undefined, points: number, author: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } }> } } };
 
 export const NormalUserFragmentDoc = gql`
     fragment NormalUser on User {
@@ -853,7 +854,7 @@ export const PostsDocument = gql`
         data {
           id
           title
-          content
+          snippet
           author {
             id
             email

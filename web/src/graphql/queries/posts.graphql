@@ -6,7 +6,7 @@ query posts($limit: Int!, $cursor: ID) {
         data {
           id
           title
-          content
+          snippet
           author {
             id
             email
