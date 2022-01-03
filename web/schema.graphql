@@ -158,6 +158,7 @@ type Post {
   points: Int!
   snippet: String
   title: String!
+  voteStatus: Boolean
 }
 
 type Query {

@@ -4,6 +4,7 @@ query posts($limit: Int!, $cursor: ID) {
       __typename
       ... on PaginatedPostsDataSuccess {
         data {
+          __typename
           id
           title
           snippet
@@ -13,6 +14,7 @@ query posts($limit: Int!, $cursor: ID) {
             name
           }
           points
+          voteStatus
         }
       }
       ... on Error {

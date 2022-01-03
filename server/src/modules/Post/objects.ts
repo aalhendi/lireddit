@@ -17,6 +17,24 @@ export const PostObject = builder.prismaObject("Post", {
       },
     }),
     points: t.exposeInt("points"),
+    voteStatus: t.boolean({
+      nullable: true,
+      resolve: async (root, _args, ctx, _info) => {
+        if (ctx.req.session.userId) {
+          const foundVote = await prisma.usersOnPosts.findUnique({
+            where: {
+              postId_userId: {
+                postId: root.id,
+                userId: ctx.req.session.userId,
+              },
+            },
+          });
+          return foundVote?.value;
+        } else {
+          return null;
+        }
+      },
+    }),
     author: t.relation("author", {
       resolve: async (_query, post) => {
         return await prisma.user.findUnique({

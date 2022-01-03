@@ -191,6 +191,7 @@ export type Post = {
   points: Scalars['Int'];
   snippet?: Maybe<Scalars['String']>;
   title: Scalars['String'];
+  voteStatus?: Maybe<Scalars['Boolean']>;
 };
 
 export type Query = {
@@ -332,7 +333,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, data: { __typename: 'BaseError', message: string } | { __typename: 'PaginatedPostsDataSuccess', data: Array<{ __typename?: 'Post', id: string, title: string, snippet?: string | null | undefined, points: number, author: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } }> } } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, data: { __typename: 'BaseError', message: string } | { __typename: 'PaginatedPostsDataSuccess', data: Array<{ __typename: 'Post', id: string, title: string, snippet?: string | null | undefined, points: number, voteStatus?: boolean | null | undefined, author: { __typename?: 'User', id: string, email: string, name?: string | null | undefined } }> } } };
 
 export const NormalUserFragmentDoc = gql`
     fragment NormalUser on User {
@@ -852,6 +853,7 @@ export const PostsDocument = gql`
       __typename
       ... on PaginatedPostsDataSuccess {
         data {
+          __typename
           id
           title
           snippet
@@ -861,6 +863,7 @@ export const PostsDocument = gql`
             name
           }
           points
+          voteStatus
         }
       }
       ... on Error {

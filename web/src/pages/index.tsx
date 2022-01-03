@@ -79,6 +79,7 @@ const Home: NextPage = () => {
                   onClose={onClose}
                   setError={setError}
                   setAlertStatus={setAlertStatus}
+                  key={p.id}
                 />
               ))}
             <Center>
