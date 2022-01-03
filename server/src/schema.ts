@@ -10,14 +10,48 @@ import {
   InvalidCredentialsError,
   NotFoundError,
   UnauthorizedError,
-} from "./objects";
+} from "./modules/Error/objects";
 import { redis } from "./redis";
 import { sendEmail } from "./utils/sendEmail";
 
 const prisma = new PrismaClient({});
 
-// TODO: Refactor
+// TODO: Refactor and remove redundant code
 // TODO: Backend permission conditional. Post owner can see own email but others shouldnt be able to
+
+export const UserObject = builder.prismaObject("User", {
+  name: "User", // Optional, default = prisma model
+  findUnique: null,
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    email: t.exposeString("email"),
+    name: t.exposeString("name", { nullable: true }),
+  }),
+});
+
+export const PostObject = builder.prismaObject("Post", {
+  findUnique: (p) => ({ id: p.id }),
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    title: t.exposeString("title"),
+    content: t.exposeString("content", { nullable: true }),
+    snippet: t.string({
+      nullable: true,
+      resolve: (root, _args, _ctx, _info) => {
+        return root.content?.slice(0, 50);
+      },
+    }),
+    points: t.exposeInt("points"),
+    author: t.relation("author", {
+      resolve: async (_query, post) => {
+        return await prisma.user.findUnique({
+          where: { id: post.authorId },
+          rejectOnNotFound: true,
+        });
+      },
+    }),
+  }),
+});
 
 builder.queryField("post", (t) => {
   return t.prismaField({

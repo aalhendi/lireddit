@@ -1,52 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { builder } from "./builder";
+import { builder } from "../../builder";
 import { ZodError } from "zod";
-import { flattenErrors } from "./utils/flattenErrors";
-
-const prisma = new PrismaClient({});
-
-export const UserObject = builder.prismaObject("User", {
-  name: "User", // Optional, default = prisma model
-  findUnique: null,
-  fields: (t) => ({
-    id: t.exposeID("id"),
-    email: t.exposeString("email"),
-    name: t.exposeString("name", { nullable: true }),
-  }),
-});
-
-// export const UserOnPostsObject = builder.prismaObject("UsersOnPosts", {
-//   name: "UsersOnPosts", // Optional, default = prisma model
-//   findUnique: null,
-//   fields: (t) => ({
-//     postId: t.exposeID("postId"),
-//     userId: t.exposeID("userId"),
-//   }),
-// });
-
-export const PostObject = builder.prismaObject("Post", {
-  findUnique: null,
-  fields: (t) => ({
-    id: t.exposeID("id"),
-    title: t.exposeString("title"),
-    content: t.exposeString("content", { nullable: true }),
-    snippet: t.string({
-      nullable: true,
-      resolve: (root, _args, _ctx, _info) => {
-        return root.content?.slice(0, 50);
-      },
-    }),
-    points: t.exposeInt("points"),
-    author: t.relation("author", {
-      resolve: async (_query, post) => {
-        return await prisma.user.findUnique({
-          where: { id: post.authorId },
-          rejectOnNotFound: true,
-        });
-      },
-    }),
-  }),
-});
+import { flattenErrors } from "../../utils/flattenErrors";
 
 const ErrorInterface = builder.interfaceRef<Error>("Error").implement({
   fields: (t) => ({
