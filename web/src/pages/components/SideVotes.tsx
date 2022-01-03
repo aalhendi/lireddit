@@ -31,7 +31,7 @@ export const SideVotes: React.FC<SideVotesProps> = ({ post }) => {
           });
           setLoading("none");
         }}
-        // bgColor={hasTheUserVoted  === true ? "green" : ""}
+        bgColor={post.voteStatus === true ? "green" : ""}
         isLoading={loading === "up-loading"}
         aria-label={"Upvote Post"}
         icon={<ChevronUpIcon w={8} h={8} />}
@@ -48,7 +48,7 @@ export const SideVotes: React.FC<SideVotesProps> = ({ post }) => {
           });
           setLoading("none");
         }}
-        // bgColor={hasTheUserVoted  === false ? "red" : ""}
+        bgColor={post.voteStatus === false ? "red" : ""}
         isLoading={loading === "down-loading"}
         aria-label={"Pownvote Post"}
         icon={<ChevronDownIcon w={8} h={8} />}
