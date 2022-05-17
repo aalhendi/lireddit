@@ -1,3 +1,3 @@
 # lireddit
 
-Ben Awad's lireddit with Prisma, GiraphQL and Nextjs 12
+Ben Awad's lireddit with Prisma, Pothos and Nextjs 12

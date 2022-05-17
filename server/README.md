@@ -5,7 +5,7 @@
 - Express
 - GraphQL
 - Apollo
-- GiraphQL
+- Pothos
 - Prisma
 
 ## Getting Started

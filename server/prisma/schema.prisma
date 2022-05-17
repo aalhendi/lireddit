@@ -5,10 +5,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-generator giraphql {
-  provider = "prisma-giraphql-types"
+generator pothos {
+  provider = "prisma-pothos-types"
   // clientOutput = "@prisma/client"
-  // output = "./giraphql-types.ts"
+  // output = "./pothos-types.ts"
 }
 
 generator dbml {

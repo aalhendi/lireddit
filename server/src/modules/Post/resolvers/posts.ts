@@ -1,4 +1,4 @@
-import { InputFieldRef, InputShapeFromFields } from "@giraphql/core";
+import { InputFieldRef, InputShapeFromFields } from "@pothos/core";
 import { PrismaClient } from "@prisma/client";
 import { builder } from "../../../builder";
 import { PaginatedPosts } from "../objects";

@@ -1,10 +1,10 @@
-import SchemaBuilder from "@giraphql/core";
-import ErrorsPlugin from "@giraphql/plugin-errors";
-import PrismaPlugin from "@giraphql/plugin-prisma";
-import PrismaTypes from "@giraphql/plugin-prisma/generated"; // default generator location, can be changed in schema
-import ScopeAuthPlugin from "@giraphql/plugin-scope-auth";
-import SimpleObjectsPlugin from "@giraphql/plugin-simple-objects";
-import ValidationPlugin from "@giraphql/plugin-validation";
+import SchemaBuilder from "@pothos/core";
+import ErrorsPlugin from "@pothos/plugin-errors";
+import PrismaPlugin from "@pothos/plugin-prisma";
+import PrismaTypes from "@pothos/plugin-prisma/generated"; // default generator location, can be changed in schema
+import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
+import SimpleObjectsPlugin from "@pothos/plugin-simple-objects";
+import ValidationPlugin from "@pothos/plugin-validation";
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 
