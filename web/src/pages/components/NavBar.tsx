@@ -7,18 +7,22 @@ import NextLink from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 import { useLogoutMutation, useMeQuery } from "../../generated/graphql";
-import { isServer } from "../../utils/isServer";
 
-interface NavBarProps {}
+interface NavBarProps {
+  pageProps: any;
+}
 
 const NavBar: React.FC<NavBarProps> = ({}) => {
   const router = useRouter();
   const isActive = router.pathname === "/";
-  const { data, loading: meLoading } = useMeQuery({ skip: isServer() });
+  const { data, loading: meLoading } = useMeQuery({
+    // TODO: React 18 breaking change. Find a workaround for using typeof window ==="undefined"
+    // skip: isServer()
+  });
   const [logout, { loading: logoutLoading }] = useLogoutMutation();
   const apolloClient = useApolloClient();
 
-  let links = null;
+  let links: JSX.Element | null = null;
   if (meLoading) {
     /* Data is still fetching */
     links = null;
