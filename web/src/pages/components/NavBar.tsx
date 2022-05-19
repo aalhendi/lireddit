@@ -17,7 +17,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
   const isActive = router.pathname === "/";
   // During hydration `useEffect` is called. `window` is available in `useEffect`. In this case because we know we're in the browser checking for window is not needed. If you need to read something from window that is fine.
   // By calling `setIsServer` in `useEffect` a render is triggered after hydrating, this causes the "browser specific" value to be available. In this case 'red'.
-  const [isServer, setIsServer] = React.useState(true);
+  const [isServer, setIsServer] = React.useState<boolean>(true);
 
   React.useEffect(() => {
     setIsServer(false);

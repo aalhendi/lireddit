@@ -18,6 +18,7 @@ generator dbml {
   projectName         = "lireddit"
   projectDatabaseType = "PostgreSQL"
   projectNote         = "A Reddit clone"
+  mapToDbSchema       = "true"
   // projectNotePath = ""
   // manyToMany = false
 }

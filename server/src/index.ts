@@ -57,6 +57,7 @@ async function main() {
     );
     async function startServer() {
       const apolloServer = new ApolloServer({
+        csrfPrevention: true,
         schema: schema,
         debug: process.env.NODE_ENV !== "production",
         plugins: [
