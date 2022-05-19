@@ -25,8 +25,8 @@ async function main() {
     const RedisStore = connectRedis(session);
 
     const corsOptions = {
-      // TODO: Origin in .env (?)
-      origin: ["https://studio.apollographql.com", "http://localhost:3000"],
+      disableStats: true,
+      origin: [process.env.FRONT_END_URL],
       credentials: true,
     };
 
@@ -36,7 +36,7 @@ async function main() {
       session({
         name: COOKIE_NAME,
         store: new RedisStore({
-          client: redis as any,
+          client: redis,
           // disableTTL: true,
           disableTouch: true, // touching keeps connected user auth token active, disabling = can sit idle and not have auth expire. less secure
         }),
@@ -51,7 +51,7 @@ async function main() {
               : undefined, // Set cookie anywhere req is sent
         },
         saveUninitialized: false,
-        secret: process.env.SECRET_KEY!,
+        secret: process.env.SECRET_KEY,
         resave: false,
       })
     );
@@ -88,7 +88,7 @@ async function main() {
     app.get("/", (_, res) => {
       res.send("/graphql");
     });
-    app.listen(parseInt(PORT as string), () => {
+    app.listen(parseInt(PORT), () => {
       console.log(`Listening on port ${PORT}`);
     });
   } catch (error) {
