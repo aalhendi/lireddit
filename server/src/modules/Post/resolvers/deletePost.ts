@@ -4,7 +4,7 @@ import { NotFoundError, UnauthorizedError } from "../../Error/objects";
 
 const prisma = new PrismaClient({});
 
-export const deletePost = builder.mutationField("deletePost", (t) => {
+builder.mutationField("deletePost", (t) => {
   return t.boolean({
     errors: {
       types: [Error, NotFoundError, UnauthorizedError],

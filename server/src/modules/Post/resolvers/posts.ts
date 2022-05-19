@@ -5,7 +5,7 @@ import { PaginatedPosts } from "../objects";
 
 const prisma = new PrismaClient({});
 
-export const posts = builder.queryField("posts", (t) => {
+builder.queryField("posts", (t) => {
   return t.field({
     type: PaginatedPosts,
     args: {

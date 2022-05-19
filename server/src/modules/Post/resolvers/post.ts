@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { NotFoundError } from "src/modules/Error/objects";
+import { NotFoundError } from "../../Error/objects";
 import { builder } from "../../../builder";
 
 const prisma = new PrismaClient({});
