@@ -15,10 +15,15 @@ interface NavBarProps {
 const NavBar: React.FC<NavBarProps> = ({}) => {
   const router = useRouter();
   const isActive = router.pathname === "/";
-  const { data, loading: meLoading } = useMeQuery({
-    // TODO: React 18 breaking change. Find a workaround for using typeof window ==="undefined"
-    // skip: isServer()
-  });
+  // During hydration `useEffect` is called. `window` is available in `useEffect`. In this case because we know we're in the browser checking for window is not needed. If you need to read something from window that is fine.
+  // By calling `setIsServer` in `useEffect` a render is triggered after hydrating, this causes the "browser specific" value to be available. In this case 'red'.
+  const [isServer, setIsServer] = React.useState(true);
+
+  React.useEffect(() => {
+    setIsServer(false);
+  }, []);
+
+  const { data, loading: meLoading } = useMeQuery({ skip: isServer });
   const [logout, { loading: logoutLoading }] = useLogoutMutation();
   const apolloClient = useApolloClient();
 
