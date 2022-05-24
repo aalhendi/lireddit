@@ -40,6 +40,7 @@ export const builder = new SchemaBuilder<{
     PrismaPlugin,
     SimpleObjectsPlugin,
   ],
+  errorOptions: { defaultTypes: [Error] },
   prisma: {
     client: prisma,
   },
