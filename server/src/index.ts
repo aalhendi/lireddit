@@ -10,7 +10,7 @@ import cors from "cors";
 import session from "express-session";
 import { redis } from "./redis";
 import connectRedis from "connect-redis";
-import { COOKIE_NAME } from "./constants";
+import { COOKIE_NAME, __prod__ } from "./constants";
 
 if (!fs.existsSync("./.env")) {
   throw new Error("Cannot locate .env file in the root directory.");
@@ -44,11 +44,10 @@ async function main() {
           maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year cookie
           httpOnly: true, // Dont alow JS to access this cookie
           sameSite: "lax", // CSRF stuff
-          secure: process.env.NODE_ENV === "production", // HTTPS only. False until prod
-          domain:
-            process.env.NODE_ENV === "production"
-              ? process.env.FRONT_END_URL // Cookie only to the domain in prod
-              : undefined, // Set cookie anywhere req is sent
+          secure: __prod__, // HTTPS only. False until prod
+          domain: __prod__
+            ? process.env.FRONT_END_URL // Cookie only to the domain in prod
+            : undefined, // Set cookie anywhere req is sent
         },
         saveUninitialized: false,
         secret: process.env.SECRET_KEY,
@@ -59,7 +58,7 @@ async function main() {
       const apolloServer = new ApolloServer({
         csrfPrevention: true,
         schema: schema,
-        debug: process.env.NODE_ENV !== "production",
+        debug: !__prod__,
         plugins: [
           ApolloServerPluginLandingPageGraphQLPlayground({
             // options
