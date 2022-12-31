@@ -1,3 +1,4 @@
+import argon2 from "argon2";
 import { PrismaClient, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -33,6 +34,15 @@ for (let i = 0; i < 100; ++i) {
 
 async function main() {
   console.log(`Start seeding ...`);
+  const pw = await argon2.hash("bob");
+  const user = await prisma.user.create({
+    data: {
+      email: "bob@bob.com",
+      password: pw,
+      name: "bobby",
+    },
+  });
+  console.log(`Created user with id: ${user.id}`);
   for (const p of postData) {
     const post = await prisma.post.create({
       data: p,
