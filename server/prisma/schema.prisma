@@ -1,31 +1,22 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 generator pothos {
   provider = "prisma-pothos-types"
-  // clientOutput = "@prisma/client"
-  // output = "./pothos-types.ts"
 }
 
 generator dbml {
   provider            = "prisma-dbml-generator"
-  // output     = "../dbml"
   outputName          = "lireddit.dbml"
   projectName         = "lireddit"
   projectDatabaseType = "PostgreSQL"
   projectNote         = "A Reddit clone"
   mapToDbSchema       = "true"
-  // projectNotePath = ""
-  // manyToMany = false
 }
 
 generator docs {
   provider = "node node_modules/prisma-docs-generator"
-  // output = "../../docs"
 }
 
 datasource db {
@@ -39,19 +30,19 @@ model Post {
   updatedAt DateTime       @updatedAt
   title     String         @db.VarChar(255)
   content   String?
-  points    Int            @default(0)
-  votes     UsersOnPosts[]
   published Boolean        @default(false)
-  author    User           @relation(fields: [authorId], references: [id])
   authorId  Int
+  points    Int            @default(0)
+  author    User           @relation(fields: [authorId], references: [id])
+  votes     UsersOnPosts[]
 }
 
 model UsersOnPosts {
+  postId Int
+  userId Int
+  value  Boolean
   post   Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId Int // relation scalar field (used in the `@relation` attribute above)
   user   User    @relation(fields: [userId], references: [id])
-  userId Int // relation scalar field (used in the `@relation` attribute above)
-  value  Boolean // true is upvote, false is downvote
 
   @@id([postId, userId])
 }
@@ -59,16 +50,16 @@ model UsersOnPosts {
 model Profile {
   id     Int     @id @default(autoincrement())
   bio    String?
-  user   User    @relation(fields: [userId], references: [id])
   userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
 }
 
 model User {
   id       Int            @id @default(autoincrement())
   email    String         @unique
-  password String
   name     String?
+  password String
   posts    Post[]
-  votes    UsersOnPosts[]
   profile  Profile?
+  votes    UsersOnPosts[]
 }

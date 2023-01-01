@@ -1,9 +1,11 @@
 require("dotenv").config();
 const PORT = process.env.PORT || 8000;
 import express from "express";
-import { ApolloServer } from "apollo-server-express";
-import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
+import { ApolloServer } from "@apollo/server";
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "@apollo/server-plugin-landing-page-graphql-playground";
+import { expressMiddleware } from "@apollo/server/express4";
 import { PrismaClient } from "@prisma/client";
+import { json } from "body-parser";
 import { schema } from "./schema";
 import fs from "fs";
 import cors from "cors";
@@ -36,7 +38,7 @@ async function main() {
       session({
         name: COOKIE_NAME,
         store: new RedisStore({
-          client: redis,
+          client: redis as any,
           // disableTTL: true,
           disableTouch: true, // touching keeps connected user auth token active, disabling = can sit idle and not have auth expire. less secure
         }),
@@ -58,30 +60,32 @@ async function main() {
       const apolloServer = new ApolloServer({
         csrfPrevention: true,
         schema: schema,
-        debug: !__prod__,
+        includeStacktraceInErrorResponses: !__prod__,
         plugins: [
           ApolloServerPluginLandingPageGraphQLPlayground({
             // options
           }),
         ],
-        context: async ({
-          req,
-          res,
-        }: {
-          res: express.Request;
-          req: express.Response;
-        }) => ({
-          req,
-          res,
-          // currentUser: await getUserFromAuthHeader(req.session.authorization), // Fetch user on demand via req.session.userId vs fetch user here
-        }),
       });
       await apolloServer.start();
-      apolloServer.applyMiddleware({
-        app,
-        path: "/graphql",
-        cors: corsOptions,
-      });
+      app.use(
+        "/graphql",
+        cors<cors.CorsRequest>(corsOptions),
+        json(),
+        expressMiddleware(apolloServer, {
+          context: async ({
+            req,
+            res,
+          }: {
+            req: express.Request;
+            res: express.Response;
+          }) => ({
+            req,
+            res,
+            // currentUser: await getUserFromAuthHeader(req.session.authorization), // Fetch user on demand via req.session.userId vs fetch user here
+          }),
+        })
+      );
     }
     startServer();
     app.get("/", (_, res) => {

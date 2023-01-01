@@ -13,19 +13,19 @@ Table Post {
   updatedAt DateTime [not null]
   title String [not null]
   content String
-  points Int [not null, default: 0]
-  votes UsersOnPosts [not null]
   published Boolean [not null, default: false]
-  author User [not null]
   authorId Int [not null]
+  points Int [not null, default: 0]
+  author User [not null]
+  votes UsersOnPosts [not null]
 }
 
 Table UsersOnPosts {
-  post Post [not null]
   postId Int [not null]
-  user User [not null]
   userId Int [not null]
   value Boolean [not null]
+  post Post [not null]
+  user User [not null]
 
   indexes {
     (postId, userId) [pk]
@@ -35,18 +35,18 @@ Table UsersOnPosts {
 Table Profile {
   id Int [pk, increment]
   bio String
-  user User [not null]
   userId Int [unique, not null]
+  user User [not null]
 }
 
 Table User {
   id Int [pk, increment]
   email String [unique, not null]
-  password String [not null]
   name String
+  password String [not null]
   posts Post [not null]
-  votes UsersOnPosts [not null]
   profile Profile
+  votes UsersOnPosts [not null]
 }
 
 Ref: Post.authorId > User.id

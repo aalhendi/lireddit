@@ -37,9 +37,8 @@ export const PostObject = builder.prismaObject("Post", {
     }),
     author: t.relation("author", {
       resolve: async (_query, post) => {
-        return await prisma.user.findUnique({
+        return await prisma.user.findUniqueOrThrow({
           where: { id: post.authorId },
-          rejectOnNotFound: true,
         });
       },
     }),
